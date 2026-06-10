@@ -5,10 +5,11 @@ import { useAppStore } from '@/store/useAppStore';
 import { apiClient } from '@/services/api';
 import { formatNumber, formatUSD, shortenAddress } from '@/utils/formatters';
 import { PortfolioTable } from '@/components/PortfolioTable';
+import { Portfolio } from '@/types';
 
 export default function PortfolioPage() {
   const userAddress = useAppStore((state) => state.userAddress);
-  const [portfolio, setPortfolio] = useState([]);
+  const [portfolio, setPortfolio] = useState<Portfolio[]>([]);
   const [value, setValue] = useState({ totalValue: '0', change24h: '0%' });
   const [isLoading, setIsLoading] = useState(false);
 

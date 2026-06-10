@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { Wallet, Loader2 } from 'lucide-react';
 import { shortenAddress } from '@/utils/formatters';
 import { useAppStore } from '@/store/useAppStore';
 
@@ -24,7 +25,6 @@ export function WalletConnect({ className = '' }: WalletConnectProps) {
 
   const userAddress = useAppStore((state) => state.userAddress);
   const setUserAddress = useAppStore((state) => state.setUserAddress);
-  const chainId = useAppStore((state) => state.chainId);
   const setChainId = useAppStore((state) => state.setChainId);
 
   // Listen for account/chain changes
@@ -101,7 +101,7 @@ export function WalletConnect({ className = '' }: WalletConnectProps) {
         setIsSmartAccount(false);
       }
 
-      console.log('✅ Wallet connected:', { address, chain, isSmartAccount });
+      console.log('Wallet connected:', { address, chain, isSmartAccount });
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to connect wallet';
       setError(message);
@@ -154,13 +154,13 @@ export function WalletConnect({ className = '' }: WalletConnectProps) {
       >
         {isConnecting ? (
           <>
-            <span className="animate-spin">⚙️</span>
+            <Loader2 className="w-4 h-4 animate-spin" />
             Connecting...
           </>
         ) : (
           <>
-            🦊
-            Connect MetaMask
+            <Wallet className="w-4 h-4" />
+            Connect Wallet
           </>
         )}
       </button>
@@ -176,10 +176,6 @@ export function WalletConnect({ className = '' }: WalletConnectProps) {
 // Type augmentation for window.ethereum
 declare global {
   interface Window {
-    ethereum?: {
-      request: (args: { method: string; params?: any[] }) => Promise<any>;
-      on: (event: string, callback: (...args: any[]) => void) => void;
-      removeListener: (event: string, callback: (...args: any[]) => void) => void;
-    };
+    ethereum?: any;
   }
 }

@@ -6,10 +6,10 @@ import { apiClient } from '@/services/api';
 import { AgentType } from '@/types';
 
 const AGENT_TYPES: { label: string; value: AgentType }[] = [
-  { label: '📝 Writing', value: 'writing' },
-  { label: '🔬 Research', value: 'research' },
-  { label: '🏛️ Governance', value: 'governance' },
-  { label: '🤖 Butler', value: 'butler' },
+  { label: 'Writing', value: 'writing' },
+  { label: 'Research', value: 'research' },
+  { label: 'Governance', value: 'governance' },
+  { label: 'Butler', value: 'butler' },
 ];
 
 export default function CreateAgentPage() {
@@ -65,7 +65,7 @@ export default function CreateAgentPage() {
         creatorAddress: userAddress,
       });
 
-      alert(`✅ Agent created! ID: ${response.id}`);
+      alert(`Agent created! ID: ${response.id}`);
       setFormData({ name: '', description: '', type: 'writing', chains: ['ethereum'] });
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to create agent';

@@ -11,7 +11,7 @@ import {
   Area,
   AreaChart,
 } from 'recharts';
-import { formatPrice, formatDate } from '@/utils/formatters';
+import { formatPrice } from '@/utils/formatters';
 
 interface ChartDataPoint {
   timestamp: number | string;
@@ -134,7 +134,7 @@ export function PriceChart({
               domain={domain}
               stroke="#94a3b8"
               style={{ fontSize: '12px' }}
-              tickFormatter={(value) =>
+              tickFormatter={(value: number) =>
                 tooltipFormatter ? tooltipFormatter(value) : formatPrice(value)
               }
             />
@@ -167,7 +167,7 @@ export function PriceChart({
             domain={domain}
             stroke="#94a3b8"
             style={{ fontSize: '12px' }}
-            tickFormatter={(value) =>
+            tickFormatter={(value: number) =>
               tooltipFormatter ? tooltipFormatter(value) : formatPrice(value)
             }
           />

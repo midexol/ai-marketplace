@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { Portfolio, Agent } from '@/types';
-import { formatPrice, formatNumber, formatRelativeDate } from '@/utils/formatters';
+import { formatPrice, formatNumber } from '@/utils/formatters';
 
 interface PortfolioTableProps {
   holdings: (Portfolio & { agent?: Agent; price?: string; percentageChange?: string })[];

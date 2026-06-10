@@ -6,25 +6,25 @@ export const AGENT_TYPES = {
     label: 'Writing',
     description: 'Agents specialized in content generation and writing',
     color: 'purple',
-    icon: '✍️',
+    icon: 'PenLine',
   },
   research: {
     label: 'Research',
     description: 'Agents specialized in research and data analysis',
     color: 'blue',
-    icon: '🔬',
+    icon: 'FlaskConical',
   },
   governance: {
     label: 'Governance',
     description: 'Agents specialized in governance and voting',
     color: 'green',
-    icon: '🗳️',
+    icon: 'Building2',
   },
   butler: {
     label: 'Butler',
     description: 'Agents specialized in task automation and assistance',
     color: 'orange',
-    icon: '🤖',
+    icon: 'Bot',
   },
 } as const;
 
@@ -81,11 +81,11 @@ export const GOVERNANCE = {
  * Status display values
  */
 export const STATUS_DISPLAY = {
-  active: { label: 'Active', color: 'blue', icon: '◉' },
-  passed: { label: 'Passed', color: 'green', icon: '✓' },
-  failed: { label: 'Failed', color: 'red', icon: '✗' },
-  pending: { label: 'Pending', color: 'yellow', icon: '⏳' },
-  completed: { label: 'Completed', color: 'gray', icon: '●' },
+  active: { label: 'Active', color: 'blue', icon: 'CircleDot' },
+  passed: { label: 'Passed', color: 'green', icon: 'Check' },
+  failed: { label: 'Failed', color: 'red', icon: 'X' },
+  pending: { label: 'Pending', color: 'yellow', icon: 'Clock' },
+  completed: { label: 'Completed', color: 'gray', icon: 'Circle' },
 } as const;
 
 /**
@@ -104,10 +104,10 @@ export const TRANSACTION_TYPES = {
  * Blockchain network info
  */
 export const NETWORKS = {
-  ethereum: { name: 'Ethereum', symbol: 'ETH', icon: '⟠' },
-  polygon: { name: 'Polygon', symbol: 'MATIC', icon: '⬡' },
-  arbitrum: { name: 'Arbitrum', symbol: 'ARB', icon: 'Ⓜ️' },
-  base: { name: 'Base', symbol: 'BASE', icon: 'B' },
+  ethereum: { name: 'Ethereum', symbol: 'ETH', icon: 'ETH' },
+  polygon: { name: 'Polygon', symbol: 'MATIC', icon: 'MATIC' },
+  arbitrum: { name: 'Arbitrum', symbol: 'ARB', icon: 'ARB' },
+  base: { name: 'Base', symbol: 'BASE', icon: 'BASE' },
 } as const;
 
 /**

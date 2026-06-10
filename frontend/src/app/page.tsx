@@ -3,18 +3,18 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { usePrivy } from '@privy-io/react-auth';
-import { Rocket, Globe, DollarSign, Building2, Lock } from 'lucide-react';
-import { Loader } from 'lucide-react';
+import { Rocket, Globe, DollarSign, Building2, Lock, Loader, Network } from 'lucide-react';
 
 export default function Home() {
   const router = useRouter();
-  const { authenticated, isLoading, login } = usePrivy();
+  const { authenticated, ready, login } = usePrivy();
+  const isLoading = !ready;
 
   useEffect(() => {
-    if (!isLoading && authenticated) {
+    if (ready && authenticated) {
       router.push('/onboarding');
     }
-  }, [authenticated, isLoading, router]);
+  }, [authenticated, ready, router]);
 
   if (isLoading) {
     return (
@@ -28,12 +28,15 @@ export default function Home() {
     <main className="min-h-screen flex items-center justify-center px-4 py-8">
       <div className="max-w-2xl w-full text-center">
         <div className="w-20 h-20 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-8">
-          <span className="text-4xl font-bold text-white">AI</span>
+          <Network className="w-10 h-10 text-white" />
         </div>
 
         <h1 className="text-5xl md:text-6xl font-bold text-white mb-4">
-          AI Agents Marketplace
+          Synapse
         </h1>
+        <p className="text-lg text-cyan-400 font-medium mb-4">
+          The Multi-Chain AI Agents Marketplace
+        </p>
 
         <p className="text-xl text-slate-300 mb-8 max-w-xl mx-auto">
           Create, trade, and govern AI agents across multiple blockchains. No wallet

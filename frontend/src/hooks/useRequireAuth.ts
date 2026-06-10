@@ -5,14 +5,15 @@ import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
 export function useRequireAuth() {
-  const { authenticated, isLoading } = usePrivy();
+  const { authenticated, ready } = usePrivy();
+  const isLoading = !ready;
   const router = useRouter();
 
   useEffect(() => {
-    if (!isLoading && !authenticated) {
+    if (ready && !authenticated) {
       router.push('/');
     }
-  }, [authenticated, isLoading, router]);
+  }, [authenticated, ready, router]);
 
   return { authenticated, isLoading };
 }

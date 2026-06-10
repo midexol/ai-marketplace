@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { usePrivy } from '@privy-io/react-auth';
+import { LogIn, LogOut, Menu, Network } from 'lucide-react';
 import { shortenAddress } from '@/utils/formatters';
 import { apiClient } from '@/services/api';
 
@@ -43,9 +44,9 @@ export function Header() {
             className="flex items-center gap-2 font-bold text-xl text-white hover:text-cyan-400 transition"
           >
             <div className="w-8 h-8 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-lg flex items-center justify-center">
-              <span className="text-white text-sm font-bold">AI</span>
+              <Network className="w-5 h-5 text-white" />
             </div>
-            <span className="hidden sm:inline">Agents</span>
+            <span className="hidden sm:inline">Synapse</span>
           </Link>
 
           {/* Desktop Navigation */}
@@ -78,9 +79,9 @@ export function Header() {
                 </div>
                 <button
                   onClick={() => logout()}
-                  className="px-4 py-2 bg-slate-700 hover:bg-slate-600 border border-slate-600 rounded-lg text-sm font-medium text-slate-200 transition"
+                  className="px-4 py-2 bg-slate-700 hover:bg-slate-600 border border-slate-600 rounded-lg text-sm font-medium text-slate-200 transition flex items-center gap-2"
                 >
-                  Logout
+                  <LogOut className="w-4 h-4" /> Logout
                 </button>
               </div>
             ) : (
@@ -88,7 +89,7 @@ export function Header() {
                 onClick={() => login()}
                 className="hidden sm:flex px-6 py-2 bg-cyan-600 hover:bg-cyan-700 text-white font-medium rounded-lg transition items-center gap-2"
               >
-                🔐 Sign In
+                <LogIn className="w-4 h-4" /> Sign In
               </button>
             )}
 
@@ -96,20 +97,9 @@ export function Header() {
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               className="md:hidden p-2 hover:bg-slate-800 rounded-lg transition"
+              aria-label="Toggle menu"
             >
-              <svg
-                className="w-6 h-6 text-white"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 6h16M4 12h16M4 18h16"
-                />
-              </svg>
+              <Menu className="w-6 h-6 text-white" />
             </button>
           </div>
         </div>
@@ -158,9 +148,9 @@ export function Header() {
                     login();
                     setIsMenuOpen(false);
                   }}
-                  className="w-full px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white font-medium rounded-lg transition"
+                  className="w-full px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white font-medium rounded-lg transition flex items-center justify-center gap-2"
                 >
-                  🔐 Sign In
+                  <LogIn className="w-4 h-4" /> Sign In
                 </button>
               </div>
             )}

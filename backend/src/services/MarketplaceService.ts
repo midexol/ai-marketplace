@@ -36,25 +36,6 @@ export class MarketplaceService {
   }
 
   /**
-   * Calculate cost to buy tokens using bonding curve
-   * Integral of price function from currentSupply to newSupply
-   */
-  private _calculateBuyCost(
-    currentSupply: bigint,
-    tokensToBuy: bigint,
-    params: BondingCurveParams = this.DEFAULT_BONDING_CURVE_PARAMS
-  ): bigint {
-    const newSupply = currentSupply + tokensToBuy;
-
-    // Simplified calculation: average price * tokens
-    const priceAtStart = this.calculateBondingCurvePrice(currentSupply, params);
-    const priceAtEnd = this.calculateBondingCurvePrice(newSupply, params);
-    const averagePrice = (priceAtStart + priceAtEnd) / BigInt(2);
-
-    return (averagePrice * tokensToBuy) / BigInt(1e18);
-  }
-
-  /**
    * Calculate proceeds from selling tokens using bonding curve
    */
   private calculateSellProceeds(

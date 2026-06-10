@@ -4,8 +4,8 @@ import { PrivyAuthProvider } from '@/providers/PrivyProvider';
 import { Header } from '@/components/Header';
 
 export const metadata: Metadata = {
-  title: 'AI Agents Marketplace',
-  description: 'Multi-chain AI Agents Marketplace - Trade, Create, and Govern AI Agents',
+  title: 'Synapse — Multi-Chain AI Agents Marketplace',
+  description: 'Synapse: Create, trade, and govern AI agents across Ethereum, Polygon, Arbitrum, and Base.',
 };
 
 export default function RootLayout({

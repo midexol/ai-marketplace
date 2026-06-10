@@ -1,9 +1,11 @@
+export type AgentType = 'writing' | 'research' | 'governance' | 'butler';
+
 export interface Agent {
   id: string;
   name: string;
   description: string;
   creatorAddress: string;
-  type: 'writing' | 'research' | 'governance' | 'butler';
+  type: AgentType;
   avatarUrl?: string;
   tokenAddresses: Record<string, string>; // chainId -> contract address
   chains: string[];

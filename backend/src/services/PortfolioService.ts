@@ -2,7 +2,6 @@ import { Repository } from 'typeorm';
 import { AppDataSource } from '@/database/data-source';
 import { Portfolio } from '@/models/Portfolio';
 import { User } from '@/models/User';
-import { AgentToken } from '@/models/AgentToken';
 import { logger } from '@/utils/logger';
 import { AppError } from '@/middleware/errorHandler';
 

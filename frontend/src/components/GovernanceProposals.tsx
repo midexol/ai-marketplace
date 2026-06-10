@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { formatDate, formatNumber, formatPercent } from '@/utils/formatters';
+import { formatDate, formatNumber } from '@/utils/formatters';
 
 export interface Proposal {
   id: string;
@@ -158,13 +158,13 @@ export function GovernanceProposals({
               <div>
                 <p className="text-xs text-slate-400 mb-1">Start Date</p>
                 <p className="text-sm font-medium text-white">
-                  {formatDate(proposal.startDate, 'short')}
+                  {formatDate(proposal.startDate)}
                 </p>
               </div>
               <div>
                 <p className="text-xs text-slate-400 mb-1">End Date</p>
                 <p className="text-sm font-medium text-white">
-                  {formatDate(proposal.endDate, 'short')}
+                  {formatDate(proposal.endDate)}
                 </p>
               </div>
               {proposal.quorumPercentage && (

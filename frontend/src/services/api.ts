@@ -95,6 +95,18 @@ class ApiClient {
     return data;
   }
 
+  // User preferences
+  async saveUserPreferences(
+    address: string,
+    interests: string[],
+    chains: string[]
+  ): Promise<{ success: boolean }> {
+    const { data } = await this.client.patch(`/portfolio/user/${address}`, {
+      metadata: { interests, chains },
+    });
+    return data;
+  }
+
   // Portfolio
   async getPortfolio(userAddress: string): Promise<Portfolio[]> {
     const { data } = await this.client.get(`/portfolio/${userAddress}`);

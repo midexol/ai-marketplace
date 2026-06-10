@@ -7,7 +7,7 @@ import { shortenAddress, formatNumber } from '@/utils/formatters';
 
 export default function GovernancePage() {
   const userAddress = useAppStore((state) => state.userAddress);
-  const [proposals, setProposals] = useState([]);
+  const [proposals, setProposals] = useState<any[]>([]);
   const [votingPower, setVotingPower] = useState({ power: '0', veVIRTUAL: '0' });
   const [isLoading, setIsLoading] = useState(false);
 

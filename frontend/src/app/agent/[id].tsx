@@ -6,7 +6,7 @@ import { useTrades, useMarketPrice } from '@/hooks/useMarketplace';
 import { useAppStore } from '@/store/useAppStore';
 import { PriceChart } from '@/components/PriceChart';
 import { TradeForm, TradeFormData } from '@/components/TradeForm';
-import { formatPrice, formatDate, formatNumber, shortenAddress } from '@/utils/formatters';
+import { formatPrice, formatDate, formatTimeAgo, formatNumber, shortenAddress } from '@/utils/formatters';
 import { Trade } from '@/types';
 
 interface PageProps {
@@ -98,7 +98,7 @@ export default function AgentDetailPage({ params }: PageProps) {
                 Created by {shortenAddress(agent.creatorAddress)}
               </span>
               <span className="text-sm text-slate-400">
-                {formatDate(agent.createdAt, 'short')}
+                {formatDate(agent.createdAt)}
               </span>
             </div>
           </div>
@@ -183,13 +183,13 @@ export default function AgentDetailPage({ params }: PageProps) {
                 <div className="flex items-center justify-between">
                   <span className="text-slate-400">Created</span>
                   <span className="text-white font-medium text-sm">
-                    {formatDate(agent.createdAt, 'short')}
+                    {formatDate(agent.createdAt)}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-slate-400">Last Updated</span>
                   <span className="text-white font-medium text-sm">
-                    {formatDate(agent.updatedAt, 'short')}
+                    {formatDate(agent.updatedAt)}
                   </span>
                 </div>
               </div>
@@ -345,7 +345,7 @@ export default function AgentDetailPage({ params }: PageProps) {
                       {formatPrice(parseFloat(trade.amount) * parseFloat(trade.price))}
                     </td>
                     <td className="px-4 py-3 text-right text-slate-400 text-sm">
-                      {formatDate(trade.createdAt, 'relative')}
+                      {formatTimeAgo(trade.createdAt)}
                     </td>
                   </tr>
                 ))}

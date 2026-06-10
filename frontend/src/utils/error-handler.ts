@@ -7,7 +7,7 @@ export function getErrorMessage(error: unknown): string {
   if (error instanceof Error) {
     // Handle ApiError
     if ('code' in error && 'message' in error) {
-      const apiError = error as ApiError;
+      const apiError = error as unknown as ApiError;
       return getApiErrorMessage(apiError.code);
     }
     return error.message;

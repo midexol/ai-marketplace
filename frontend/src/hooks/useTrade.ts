@@ -14,7 +14,7 @@ export function useExecuteTrade() {
 
   return useMutation({
     mutationFn: (params: ExecuteTradeParams) => apiClient.executeTrade(params),
-    onSuccess: (data, variables) => {
+    onSuccess: (_data, variables) => {
       // Invalidate relevant queries after successful trade
       queryClient.invalidateQueries({ queryKey: ['portfolio'] });
       queryClient.invalidateQueries({ queryKey: ['trades', variables.agentId] });

@@ -28,10 +28,10 @@ export class User {
   @Column({ type: 'text', nullable: true })
   bio?: string;
 
-  @Column({ type: 'jsonb', default: {} })
+  @Column({ type: 'simple-json', default: '{}' })
   metadata: Record<string, any>;
 
-  @Column({ type: 'numeric', precision: 38, scale: 18, default: 0 })
+  @Column({ type: 'text', default: '0' })
   totalPortfolioValue: string;
 
   @Column({ type: 'boolean', default: false })

@@ -18,7 +18,7 @@ export class Trade {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ type: 'uuid' })
+  @Column({ type: 'varchar' })
   agentId: string;
 
   @Column({ type: 'varchar', length: 42 })
@@ -27,13 +27,13 @@ export class Trade {
   @Column({ type: 'varchar', length: 42 })
   seller: string;
 
-  @Column({ type: 'numeric', precision: 38, scale: 18 })
+  @Column({ type: 'text' })
   amount: string;
 
-  @Column({ type: 'numeric', precision: 38, scale: 18 })
+  @Column({ type: 'text' })
   price: string;
 
-  @Column({ type: 'numeric', precision: 38, scale: 18 })
+  @Column({ type: 'text' })
   totalValue: string;
 
   @Column({ type: 'varchar', length: 50 })
@@ -42,7 +42,7 @@ export class Trade {
   @Column({ type: 'varchar', length: 100 })
   txHash: string;
 
-  @Column({ type: 'enum', enum: ['buy', 'sell'] })
+  @Column({ type: 'varchar', length: 10 })
   type: 'buy' | 'sell';
 
   @CreateDateColumn()

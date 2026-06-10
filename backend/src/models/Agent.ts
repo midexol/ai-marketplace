@@ -28,25 +28,22 @@ export class Agent {
   @Column({ type: 'varchar', length: 42 })
   creatorAddress: string;
 
-  @Column({
-    type: 'enum',
-    enum: ['writing', 'research', 'governance', 'butler'],
-  })
+  @Column({ type: 'varchar', length: 20 })
   type: 'writing' | 'research' | 'governance' | 'butler';
 
   @Column({ type: 'varchar', nullable: true })
   avatarUrl?: string;
 
-  @Column({ type: 'jsonb', default: {} })
+  @Column({ type: 'simple-json', default: '{}' })
   tokenAddresses: Record<string, string>;
 
-  @Column({ type: 'simple-array', default: [] })
+  @Column({ type: 'simple-array', default: '' })
   chains: string[];
 
   @Column({ type: 'bigint', default: 0 })
   totalHolders: number;
 
-  @Column({ type: 'numeric', precision: 38, scale: 18, default: 0 })
+  @Column({ type: 'text', default: '0' })
   marketCap: string;
 
   @CreateDateColumn()

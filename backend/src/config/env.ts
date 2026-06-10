@@ -8,18 +8,12 @@ const envSchema = z.object({
   PORT: z.string().default('3001').transform(Number),
   LOG_LEVEL: z.enum(['error', 'warn', 'info', 'debug']).default('info'),
 
-  // Database
-  DB_HOST: z.string().default('localhost'),
-  DB_PORT: z.string().default('5432').transform(Number),
-  DB_USER: z.string().default('postgres'),
-  DB_PASSWORD: z.string().default('postgres'),
-  DB_NAME: z.string().default('ai_marketplace'),
+  // Database - Turso (libSQL / SQLite). Falls back to a local file for dev.
+  DATABASE_URL: z.string().default('./synapse.db'),
+  DATABASE_AUTH_TOKEN: z.string().optional(),
 
-  // Redis
-  REDIS_URL: z.string().default('redis://localhost:6379'),
-
-  // Blockchain - Single Alchemy API key for all chains
-  ALCHEMY_API_KEY: z.string(),
+  // Blockchain - Single Alchemy API key for all chains (optional for local demo)
+  ALCHEMY_API_KEY: z.string().default('demo'),
 
   // LLM APIs
   VENICE_API_KEY: z.string().optional(),

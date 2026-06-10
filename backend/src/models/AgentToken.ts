@@ -19,7 +19,7 @@ export class AgentToken {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ type: 'uuid' })
+  @Column({ type: 'varchar' })
   agentId: string;
 
   @Column({ type: 'varchar', length: 50 })
@@ -28,22 +28,22 @@ export class AgentToken {
   @Column({ type: 'varchar', length: 42 })
   contractAddress: string;
 
-  @Column({ type: 'numeric', precision: 38, scale: 18, default: 0 })
+  @Column({ type: 'text', default: '0' })
   totalSupply: string;
 
-  @Column({ type: 'numeric', precision: 38, scale: 18, default: 0 })
+  @Column({ type: 'text', default: '0' })
   circulatingSupply: string;
 
-  @Column({ type: 'numeric', precision: 38, scale: 18, default: 0 })
+  @Column({ type: 'text', default: '0' })
   price: string;
 
-  @Column({ type: 'numeric', precision: 38, scale: 18, default: 0 })
+  @Column({ type: 'text', default: '0' })
   marketCap: string;
 
-  @Column({ type: 'numeric', precision: 18, scale: 2, default: 0 })
+  @Column({ type: 'real', default: 0 })
   priceChange24h: number;
 
-  @Column({ type: 'numeric', precision: 38, scale: 18, default: 0 })
+  @Column({ type: 'text', default: '0' })
   volume24h: string;
 
   @CreateDateColumn()

@@ -23,25 +23,25 @@ export class Portfolio {
   @Column({ type: 'varchar', length: 42 })
   userAddress: string;
 
-  @Column({ type: 'uuid' })
+  @Column({ type: 'varchar' })
   agentId: string;
 
-  @Column({ type: 'uuid', nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   agentTokenId?: string;
 
   @Column({ type: 'varchar', length: 50 })
   chain: string;
 
-  @Column({ type: 'numeric', precision: 38, scale: 18, default: 0 })
+  @Column({ type: 'text', default: '0' })
   balance: string;
 
-  @Column({ type: 'numeric', precision: 38, scale: 18, default: 0 })
+  @Column({ type: 'text', default: '0' })
   currentPrice: string;
 
-  @Column({ type: 'numeric', precision: 38, scale: 18, default: 0 })
+  @Column({ type: 'text', default: '0' })
   currentValue: string;
 
-  @Column({ type: 'numeric', precision: 38, scale: 18, default: 0 })
+  @Column({ type: 'text', default: '0' })
   averageBuyPrice: string;
 
   @CreateDateColumn()

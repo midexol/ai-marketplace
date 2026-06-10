@@ -1,13 +1,24 @@
 import axios, { AxiosInstance } from 'axios';
 import { Agent, Trade, Portfolio, PaginatedResponse, ApiError } from '@/types';
 
+/**
+ * Normalizes NEXT_PUBLIC_API_URL into a base ending in exactly one `/api`.
+ * Accepts either the bare origin ("https://host.com") or one already
+ * including the suffix ("https://host.com/api") — both resolve identically.
+ */
+function resolveApiBase(): string {
+  const raw = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+  const trimmed = raw.replace(/\/+$/, '').replace(/\/api$/, '');
+  return `${trimmed}/api`;
+}
+
 class ApiClient {
   private client: AxiosInstance;
   private authToken: string | null = null;
 
   constructor() {
     this.client = axios.create({
-      baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api',
+      baseURL: resolveApiBase(),
       timeout: 10000,
       headers: {
         'Content-Type': 'application/json',

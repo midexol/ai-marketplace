@@ -41,6 +41,11 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 const CLIENT_ID = process.env.NEXT_PUBLIC_WEB3AUTH_CLIENT_ID || '';
+// Free/new Web3Auth projects default to "sapphire_devnet". Set this to
+// "sapphire_mainnet" only once your dashboard project is on a paid/mainnet plan.
+const WEB3AUTH_NETWORK =
+  (process.env.NEXT_PUBLIC_WEB3AUTH_NETWORK as 'sapphire_devnet' | 'sapphire_mainnet') ||
+  'sapphire_devnet';
 const CHAIN_ID_HEX = '0x1'; // Ethereum mainnet for display/signing namespace
 
 function encodeToken(user: AuthUser): string {
@@ -88,7 +93,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
 
         const instance = new Web3Auth({
           clientId: CLIENT_ID,
-          web3AuthNetwork: 'sapphire_mainnet',
+          web3AuthNetwork: WEB3AUTH_NETWORK,
           privateKeyProvider,
           uiConfig: {
             appName: 'Synapse',

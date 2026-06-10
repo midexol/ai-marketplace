@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
-import './globals.css';
-import { PricyAuthProvider } from '@/providers/PrivyProvider';
+import '@/styles/globals.css';
+import { PrivyAuthProvider } from '@/providers/PrivyProvider';
 import { Header } from '@/components/Header';
 
 export const metadata: Metadata = {
@@ -16,12 +16,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <PricyAuthProvider>
+        <PrivyAuthProvider>
           <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
             <Header />
             {children}
           </div>
-        </PricyAuthProvider>
+        </PrivyAuthProvider>
       </body>
     </html>
   );

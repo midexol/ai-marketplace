@@ -174,7 +174,7 @@ export class BlockchainService {
 
   async getChainInfo(chain: string) {
     try {
-      const chainConfig = this.chains[chain];
+      const chainConfig = CHAINS[chain as keyof typeof CHAINS];
       if (!chainConfig) {
         throw new AppError(`Chain not found: ${chain}`, 404, 'CHAIN_NOT_FOUND');
       }
@@ -199,10 +199,10 @@ export class BlockchainService {
   }
 
   async getSupportedChains() {
-    return Object.entries(this.chains).map(([key, config]) => ({
+    return Object.entries(CHAINS).map(([key, config]) => ({
       key,
       name: config.name,
-      chainId: config.chainId,
+      chainId: config.id,
     }));
   }
 }

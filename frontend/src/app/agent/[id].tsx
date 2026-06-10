@@ -21,7 +21,7 @@ export default function AgentDetailPage({ params }: PageProps) {
   const userAddress = useAppStore((state) => state.userAddress);
   const { data: agent, isLoading: agentLoading, error: agentError } = useAgent(params.id);
   const { data: trades, isLoading: tradesLoading } = useTrades(params.id);
-  const { data: priceData, isLoading: priceLoading } = useMarketPrice(params.id, selectedChain);
+  const { data: priceData } = useMarketPrice(params.id, selectedChain);
 
   // Mock chart data (in production, fetch from API)
   const mockChartData = [

@@ -43,7 +43,7 @@ export function TradeForm({
   const balanceNum = parseFloat(userBalance) || 0;
   const maxAmount =
     selectedType === 'buy'
-      ? (balanceNum / priceNum).toFixed(6)
+      ? priceNum > 0 ? (balanceNum / priceNum).toFixed(6) : '0'
       : userBalance;
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {

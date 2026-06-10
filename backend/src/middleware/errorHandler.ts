@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { logger } from '@/utils/logger';
 import { ApiResponse } from '@/types';
+import { env } from '@/config/env';
 
 export class AppError extends Error {
   constructor(
@@ -21,10 +22,12 @@ export function errorHandler(
 ) {
   const error = err instanceof AppError ? err : new AppError(err.message, 500);
 
+  const isDev = env.NODE_ENV === 'development';
+
   logger.error(error.message, {
     status: error.status,
     code: error.code,
-    stack: error.stack,
+    ...(isDev && { stack: error.stack }),
     path: req.path,
     method: req.method,
   });

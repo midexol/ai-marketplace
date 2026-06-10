@@ -1,7 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npm init *)"
+      "Bash(npm init *)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\user\\\\ai-marketplace\" -Force)",
+      "Bash(Select-Object Name, FullName)"
     ]
   }
 }

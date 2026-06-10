@@ -83,7 +83,7 @@ export default function Home() {
         </button>
 
         <p className="text-slate-400 text-sm">
-          Sign in with email, Google, or GitHub. No credit card required.
+          Sign in with email. No credit card required.
         </p>
       </div>
     </main>

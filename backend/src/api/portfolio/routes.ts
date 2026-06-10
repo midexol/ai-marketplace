@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { Portfolio } from '@/types';
 import { PortfolioService } from '@/services/PortfolioService';
 import { AppError } from '@/middleware/errorHandler';
+import { authorizeUser } from '@/middleware/authMiddleware';
 import { logger } from '@/utils/logger';
 
 const router = Router();
@@ -84,7 +85,7 @@ router.get('/:userAddress/value', async (req: Request, res: Response) => {
 });
 
 // POST /api/portfolio/:userAddress/holdings - Add holding
-router.post('/:userAddress/holdings', async (req: Request, res: Response) => {
+router.post('/:userAddress/holdings', authorizeUser('userAddress'), async (req: Request, res: Response) => {
   try {
     const { userAddress } = req.params;
     const validated = addHoldingSchema.parse(req.body);
@@ -114,7 +115,7 @@ router.post('/:userAddress/holdings', async (req: Request, res: Response) => {
 });
 
 // DELETE /api/portfolio/:userAddress/holdings/:agentId - Remove holding
-router.delete('/:userAddress/holdings/:agentId', async (req: Request, res: Response) => {
+router.delete('/:userAddress/holdings/:agentId', authorizeUser('userAddress'), async (req: Request, res: Response) => {
   try {
     const { userAddress, agentId } = req.params;
     const { chain } = req.query;
@@ -138,7 +139,7 @@ router.delete('/:userAddress/holdings/:agentId', async (req: Request, res: Respo
 });
 
 // PATCH /api/portfolio/user/:userAddress - Update user profile
-router.patch('/user/:userAddress', async (req: Request, res: Response) => {
+router.patch('/user/:userAddress', authorizeUser('userAddress'), async (req: Request, res: Response) => {
   try {
     const { userAddress } = req.params;
     const validated = updateUserSchema.parse(req.body);

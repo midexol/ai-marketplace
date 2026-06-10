@@ -1,15 +1,26 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { usePrivy } from '@privy-io/react-auth';
 import { shortenAddress } from '@/utils/formatters';
+import { apiClient } from '@/services/api';
 
 export function Header() {
   const pathname = usePathname();
   const { user, login, logout, authenticated } = usePrivy();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  // Set auth token when user authenticates
+  useEffect(() => {
+    if (authenticated && user?.id && user?.wallet?.address) {
+      const token = btoa(JSON.stringify({ sub: user.id, wallet: { address: user.wallet.address } }));
+      apiClient.setAuthToken(token);
+    } else {
+      apiClient.clearAuthToken();
+    }
+  }, [authenticated, user?.id, user?.wallet?.address]);
 
   const isActive = (path: string) => pathname === path;
 

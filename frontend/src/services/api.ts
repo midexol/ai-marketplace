@@ -3,6 +3,7 @@ import { Agent, Trade, Portfolio, PaginatedResponse, ApiError } from '@/types';
 
 class ApiClient {
   private client: AxiosInstance;
+  private authToken: string | null = null;
 
   constructor() {
     this.client = axios.create({
@@ -11,6 +12,13 @@ class ApiClient {
       headers: {
         'Content-Type': 'application/json',
       },
+    });
+
+    this.client.interceptors.request.use((config) => {
+      if (this.authToken) {
+        config.headers.Authorization = `Bearer ${this.authToken}`;
+      }
+      return config;
     });
 
     this.client.interceptors.response.use(
@@ -24,6 +32,14 @@ class ApiClient {
         return Promise.reject(apiError);
       }
     );
+  }
+
+  setAuthToken(token: string) {
+    this.authToken = token;
+  }
+
+  clearAuthToken() {
+    this.authToken = null;
   }
 
   // Agents

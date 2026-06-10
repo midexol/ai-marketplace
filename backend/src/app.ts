@@ -5,6 +5,8 @@ import 'express-async-errors';
 
 import { env } from '@/config/env';
 import { errorHandler } from '@/middleware/errorHandler';
+import { rateLimiter } from '@/middleware/rateLimiter';
+import { authMiddleware, requireAuth } from '@/middleware/authMiddleware';
 import { logger } from '@/utils/logger';
 
 // Import routes
@@ -29,15 +31,18 @@ export function createApp(): Express {
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
 
-  // Health check
+  // Rate limiting - global
+  app.use(rateLimiter(60000, 300)); // 300 requests per minute
+
+  // Health check (no auth required)
   app.use('/health', healthRoutes);
 
-  // API Routes
-  app.use('/api/agents', agentRoutes);
-  app.use('/api/marketplace', marketplaceRoutes);
-  app.use('/api/portfolio', portfolioRoutes);
-  app.use('/api/inference', inferenceRoutes);
-  app.use('/api/governance', governanceRoutes);
+  // API Routes with authentication
+  app.use('/api/agents', authMiddleware, agentRoutes);
+  app.use('/api/marketplace', authMiddleware, marketplaceRoutes);
+  app.use('/api/portfolio', authMiddleware, portfolioRoutes);
+  app.use('/api/inference', authMiddleware, inferenceRoutes);
+  app.use('/api/governance', authMiddleware, governanceRoutes);
 
   // Error handling
   app.use(errorHandler);

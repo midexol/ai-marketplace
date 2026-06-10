@@ -186,10 +186,9 @@ export class BlockchainService {
       return {
         chain,
         name: chainConfig.name,
-        chainId: chainConfig.chainId,
+        chainId: chainConfig.id,
         blockNumber,
         networkName: network.name,
-        rpcUrl: chainConfig.rpcUrl,
       };
     } catch (error) {
       if (error instanceof AppError) throw error;

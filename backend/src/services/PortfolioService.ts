@@ -21,12 +21,10 @@ interface PortfolioHolding {
 export class PortfolioService {
   private portfolioRepository: Repository<Portfolio>;
   private userRepository: Repository<User>;
-  private agentTokenRepository: Repository<AgentToken>;
 
   constructor() {
     this.portfolioRepository = AppDataSource.getRepository(Portfolio);
     this.userRepository = AppDataSource.getRepository(User);
-    this.agentTokenRepository = AppDataSource.getRepository(AgentToken);
   }
 
   async getOrCreateUser(address: string): Promise<User> {

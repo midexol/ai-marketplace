@@ -39,7 +39,7 @@ export class MarketplaceService {
    * Calculate cost to buy tokens using bonding curve
    * Integral of price function from currentSupply to newSupply
    */
-  private calculateBuyCost(
+  private _calculateBuyCost(
     currentSupply: bigint,
     tokensToBuy: bigint,
     params: BondingCurveParams = this.DEFAULT_BONDING_CURVE_PARAMS
@@ -75,7 +75,7 @@ export class MarketplaceService {
     return (averagePrice * tokensToSell) / BigInt(1e18);
   }
 
-  async getTokenPrice(agentTokenId: string, chain: string): Promise<{
+  async getTokenPrice(agentTokenId: string, _chain: string): Promise<{
     price: string;
     marketCap: string;
     priceChange24h: number;

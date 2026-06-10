@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { usePrivy } from '@privy-io/react-auth';
+import { useAuth } from '@/providers/WalletProvider';
 import { apiClient } from '@/services/api';
 import {
   TrendingUp,
@@ -33,7 +33,7 @@ const CHAINS: { id: string; label: string; color: string }[] = [
 
 export default function OnboardingPage() {
   const router = useRouter();
-  const { user, ready } = usePrivy();
+  const { user, ready } = useAuth();
   const privyLoading = !ready;
   const [step, setStep] = useState<'welcome' | 'interests' | 'chains' | 'done'>('welcome');
   const [isLoading, setIsLoading] = useState(false);
@@ -41,12 +41,12 @@ export default function OnboardingPage() {
   const [chains, setChains] = useState<string[]>(['ethereum']);
 
   useEffect(() => {
-    if (!privyLoading && !user?.wallet) {
+    if (!privyLoading && !user?.address) {
       router.push('/');
     }
   }, [user, privyLoading, router]);
 
-  if (privyLoading || !user?.wallet) {
+  if (privyLoading || !user?.address) {
     return (
       <main className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cyan-500"></div>
@@ -54,7 +54,7 @@ export default function OnboardingPage() {
     );
   }
 
-  const walletAddress = user.wallet.address;
+  const walletAddress = user.address;
 
   const handleInterestToggle = (id: string) => {
     setInterests((prev) =>

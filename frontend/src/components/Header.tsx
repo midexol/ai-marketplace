@@ -3,25 +3,25 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { usePrivy } from '@privy-io/react-auth';
+import { useAuth } from '@/providers/WalletProvider';
 import { LogIn, LogOut, Menu, Network } from 'lucide-react';
 import { shortenAddress } from '@/utils/formatters';
 import { apiClient } from '@/services/api';
 
 export function Header() {
   const pathname = usePathname();
-  const { user, login, logout, authenticated } = usePrivy();
+  const { user, login, logout, authenticated, getToken } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   // Set auth token when user authenticates
   useEffect(() => {
-    if (authenticated && user?.id && user?.wallet?.address) {
-      const token = btoa(JSON.stringify({ sub: user.id, wallet: { address: user.wallet.address } }));
+    const token = getToken();
+    if (authenticated && token) {
       apiClient.setAuthToken(token);
     } else {
       apiClient.clearAuthToken();
     }
-  }, [authenticated, user?.id, user?.wallet?.address]);
+  }, [authenticated, getToken]);
 
   const isActive = (path: string) => pathname === path;
 
@@ -32,34 +32,34 @@ export function Header() {
     { label: 'Governance', href: '/governance' },
   ];
 
-  const walletAddress = user?.wallet?.address || '';
+  const walletAddress = user?.address || '';
 
   return (
-    <header className="sticky top-0 z-50 bg-slate-900/80 backdrop-blur-md border-b border-slate-700">
-      <div className="container mx-auto px-4 py-4">
+    <header className="sticky top-0 z-50 border-b border-white/10 bg-[#060a14]/70 backdrop-blur-xl">
+      <div className="container mx-auto px-4 py-3.5">
         <div className="flex items-center justify-between gap-8">
           {/* Logo */}
           <Link
             href="/"
-            className="flex items-center gap-2 font-bold text-xl text-white hover:text-cyan-400 transition"
+            className="flex items-center gap-2.5 text-xl font-bold text-white transition hover:opacity-90"
           >
-            <div className="w-8 h-8 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-lg flex items-center justify-center">
-              <Network className="w-5 h-5 text-white" />
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 shadow-[0_6px_20px_-6px_rgba(6,182,212,0.7)]">
+              <Network className="h-5 w-5 text-white" />
             </div>
-            <span className="hidden sm:inline">Synapse</span>
+            <span className="hidden text-gradient sm:inline">Synapse</span>
           </Link>
 
           {/* Desktop Navigation */}
           {authenticated && (
-            <nav className="hidden md:flex items-center gap-8">
+            <nav className="hidden items-center gap-1 md:flex">
               {navItems.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`text-sm font-medium transition ${
+                  className={`rounded-lg px-3.5 py-2 text-sm font-medium transition ${
                     isActive(item.href)
-                      ? 'text-cyan-400 border-b-2 border-cyan-400 pb-1'
-                      : 'text-slate-300 hover:text-cyan-400 pb-1'
+                      ? 'bg-white/[0.06] text-cyan-300'
+                      : 'text-slate-400 hover:bg-white/[0.04] hover:text-white'
                   }`}
                 >
                   {item.label}
@@ -69,27 +69,20 @@ export function Header() {
           )}
 
           {/* Auth Section */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             {authenticated && walletAddress ? (
-              <div className="hidden sm:flex items-center gap-3">
-                <div className="px-3 py-2 bg-cyan-500/20 border border-cyan-500/50 rounded-lg">
-                  <p className="text-sm font-medium text-cyan-200">
-                    {shortenAddress(walletAddress, 4)}
-                  </p>
+              <div className="hidden items-center gap-3 sm:flex">
+                <div className="chip font-mono">
+                  <span className="h-2 w-2 rounded-full bg-green-400 shadow-[0_0_8px_rgba(74,222,128,0.8)]" />
+                  {shortenAddress(walletAddress, 4)}
                 </div>
-                <button
-                  onClick={() => logout()}
-                  className="px-4 py-2 bg-slate-700 hover:bg-slate-600 border border-slate-600 rounded-lg text-sm font-medium text-slate-200 transition flex items-center gap-2"
-                >
-                  <LogOut className="w-4 h-4" /> Logout
+                <button onClick={() => logout()} className="btn-ghost px-4 py-2 text-sm">
+                  <LogOut className="h-4 w-4" /> Logout
                 </button>
               </div>
             ) : (
-              <button
-                onClick={() => login()}
-                className="hidden sm:flex px-6 py-2 bg-cyan-600 hover:bg-cyan-700 text-white font-medium rounded-lg transition items-center gap-2"
-              >
-                <LogIn className="w-4 h-4" /> Sign In
+              <button onClick={() => login()} className="btn-primary hidden px-5 py-2 text-sm sm:flex">
+                <LogIn className="h-4 w-4" /> Sign In
               </button>
             )}
 

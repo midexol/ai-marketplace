@@ -1,11 +1,11 @@
 'use client';
 
-import { usePrivy } from '@privy-io/react-auth';
+import { useAuth } from '@/providers/WalletProvider';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
 export function useRequireAuth() {
-  const { authenticated, ready } = usePrivy();
+  const { authenticated, ready } = useAuth();
   const isLoading = !ready;
   const router = useRouter();
 

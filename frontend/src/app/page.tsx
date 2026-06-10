@@ -2,13 +2,50 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { usePrivy } from '@privy-io/react-auth';
-import { Rocket, Globe, DollarSign, Building2, Lock, Loader, Network } from 'lucide-react';
+import { useAuth } from '@/providers/WalletProvider';
+import {
+  Rocket,
+  Globe,
+  DollarSign,
+  Building2,
+  Loader2,
+  Network,
+  ArrowRight,
+  Sparkles,
+} from 'lucide-react';
+
+const FEATURES = [
+  {
+    icon: Rocket,
+    title: 'No Wallet Installation',
+    desc: 'Sign up with email — an embedded wallet is created for you instantly.',
+  },
+  {
+    icon: Globe,
+    title: 'Multi-Chain',
+    desc: 'Trade seamlessly across Ethereum, Polygon, Arbitrum, and Base.',
+  },
+  {
+    icon: DollarSign,
+    title: 'Fair Pricing',
+    desc: 'Transparent bonding curves drive real-time price discovery.',
+  },
+  {
+    icon: Building2,
+    title: 'On-Chain Governance',
+    desc: 'Stake, vote, and shape the future of every agent you hold.',
+  },
+];
+
+const STATS = [
+  { value: '4', label: 'Chains' },
+  { value: '0', label: 'Extensions needed' },
+  { value: '<30s', label: 'To onboard' },
+];
 
 export default function Home() {
   const router = useRouter();
-  const { authenticated, ready, login } = usePrivy();
-  const isLoading = !ready;
+  const { authenticated, ready, login } = useAuth();
 
   useEffect(() => {
     if (ready && authenticated) {
@@ -16,79 +53,112 @@ export default function Home() {
     }
   }, [authenticated, ready, router]);
 
-  if (isLoading) {
+  if (!ready) {
     return (
-      <main className="min-h-screen flex items-center justify-center">
-        <Loader className="animate-spin text-cyan-500" size={48} />
+      <main className="flex min-h-[80vh] items-center justify-center">
+        <Loader2 className="animate-spin text-cyan-400" size={40} />
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center px-4 py-8">
-      <div className="max-w-2xl w-full text-center">
-        <div className="w-20 h-20 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-8">
-          <Network className="w-10 h-10 text-white" />
+    <main className="relative mx-auto max-w-6xl px-4 pb-24 pt-16 md:pt-24">
+      {/* Hero */}
+      <section className="animate-fade-up text-center">
+        <div className="mx-auto mb-8 flex h-20 w-20 items-center justify-center rounded-3xl bg-gradient-to-br from-cyan-500 to-blue-600 shadow-[0_12px_50px_-12px_rgba(6,182,212,0.7)] animate-float">
+          <Network className="h-10 w-10 text-white" />
         </div>
 
-        <h1 className="text-5xl md:text-6xl font-bold text-white mb-4">
-          Synapse
+        <div className="mb-6 flex justify-center">
+          <span className="eyebrow">
+            <Sparkles className="h-3.5 w-3.5" />
+            Multi-Chain AI Agents
+          </span>
+        </div>
+
+        <h1 className="text-5xl font-bold tracking-tight md:text-7xl">
+          <span className="text-gradient">Synapse</span>
         </h1>
-        <p className="text-lg text-cyan-400 font-medium mb-4">
-          The Multi-Chain AI Agents Marketplace
+
+        <p className="mx-auto mt-6 max-w-2xl text-lg text-slate-300 md:text-xl">
+          Create, trade, and govern autonomous AI agents across four blockchains —
+          with <span className="text-cyan-300">no wallet extension required.</span>
         </p>
 
-        <p className="text-xl text-slate-300 mb-8 max-w-xl mx-auto">
-          Create, trade, and govern AI agents across multiple blockchains. No wallet
-          installation required.
+        <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
+          <button onClick={() => login()} className="btn-primary text-base">
+            Get Started — it's free
+            <ArrowRight className="h-4 w-4" />
+          </button>
+          <a href="#features" className="btn-ghost text-base">
+            Explore features
+          </a>
+        </div>
+
+        <p className="mt-4 text-sm text-slate-500">
+          Sign in with email. No credit card, no seed phrase.
         </p>
 
-        <div className="bg-slate-800/50 border border-slate-700 rounded-lg p-8 mb-8 text-left">
-          <h2 className="text-2xl font-bold text-white mb-6 text-center">Why Choose Us?</h2>
-          <div className="space-y-4">
-            <div className="flex gap-3 items-start">
-              <Rocket className="w-8 h-8 text-cyan-400 flex-shrink-0 mt-0.5" />
-              <div>
-                <p className="font-semibold text-white">No Wallet Installation</p>
-                <p className="text-sm text-slate-400">Sign up with email or social login</p>
-              </div>
+        {/* Stats */}
+        <div className="mx-auto mt-14 grid max-w-lg grid-cols-3 gap-4">
+          {STATS.map((s) => (
+            <div key={s.label} className="card px-4 py-5">
+              <div className="text-2xl font-bold text-gradient-accent md:text-3xl">{s.value}</div>
+              <div className="mt-1 text-xs text-slate-400">{s.label}</div>
             </div>
-            <div className="flex gap-3 items-start">
-              <Globe className="w-8 h-8 text-cyan-400 flex-shrink-0 mt-0.5" />
-              <div>
-                <p className="font-semibold text-white">Multi-Chain</p>
-                <p className="text-sm text-slate-400">Trade on Ethereum, Polygon, Arbitrum, Base</p>
+          ))}
+        </div>
+      </section>
+
+      {/* Features */}
+      <section id="features" className="mt-28">
+        <div className="mb-12 text-center">
+          <h2 className="text-3xl font-bold text-white md:text-4xl">
+            Everything you need to launch
+          </h2>
+          <p className="mx-auto mt-3 max-w-xl text-slate-400">
+            A complete platform for the agent economy — onboarding to governance.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+          {FEATURES.map((f, i) => {
+            const Icon = f.icon;
+            return (
+              <div
+                key={f.title}
+                className="card card-hover animate-fade-up p-6"
+                style={{ animationDelay: `${i * 80}ms` }}
+              >
+                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl border border-cyan-400/20 bg-cyan-400/10">
+                  <Icon className="h-6 w-6 text-cyan-300" />
+                </div>
+                <h3 className="text-lg font-semibold text-white">{f.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-slate-400">{f.desc}</p>
               </div>
-            </div>
-            <div className="flex gap-3 items-start">
-              <DollarSign className="w-8 h-8 text-cyan-400 flex-shrink-0 mt-0.5" />
-              <div>
-                <p className="font-semibold text-white">Fair Pricing</p>
-                <p className="text-sm text-slate-400">Bonding curves for price discovery</p>
-              </div>
-            </div>
-            <div className="flex gap-3 items-start">
-              <Building2 className="w-8 h-8 text-cyan-400 flex-shrink-0 mt-0.5" />
-              <div>
-                <p className="font-semibold text-white">Governance</p>
-                <p className="text-sm text-slate-400">Vote on protocol changes</p>
-              </div>
-            </div>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section className="mt-28">
+        <div className="card relative overflow-hidden p-10 text-center md:p-16">
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-cyan-500/10 via-transparent to-blue-600/10" />
+          <div className="relative">
+            <h2 className="text-3xl font-bold text-white md:text-4xl">
+              Ready to join the agent economy?
+            </h2>
+            <p className="mx-auto mt-3 max-w-md text-slate-400">
+              Onboard in under 30 seconds and start trading your first AI agent.
+            </p>
+            <button onClick={() => login()} className="btn-primary mt-8 text-base">
+              Launch Synapse
+              <ArrowRight className="h-4 w-4" />
+            </button>
           </div>
         </div>
-
-        <button
-          onClick={() => login()}
-          className="w-full md:w-auto px-8 py-4 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white font-bold text-lg rounded-lg transition transform hover:scale-105 mb-4 flex items-center justify-center gap-2"
-        >
-          <Lock size={20} />
-          Sign In to Get Started
-        </button>
-
-        <p className="text-slate-400 text-sm">
-          Sign in with email. No credit card required.
-        </p>
-      </div>
+      </section>
     </main>
   );
 }

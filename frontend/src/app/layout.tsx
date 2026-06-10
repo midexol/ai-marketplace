@@ -1,7 +1,10 @@
 import type { Metadata } from 'next';
+import { Inter } from 'next/font/google';
 import '@/styles/globals.css';
-import { PrivyAuthProvider } from '@/providers/PrivyProvider';
+import { WalletProvider } from '@/providers/WalletProvider';
 import { Header } from '@/components/Header';
+
+const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 
 export const metadata: Metadata = {
   title: 'Synapse — Multi-Chain AI Agents Marketplace',
@@ -14,14 +17,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body>
-        <PrivyAuthProvider>
-          <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+    <html lang="en" className={inter.variable}>
+      <body className="font-sans">
+        <WalletProvider>
+          <div className="app-bg">
             <Header />
             {children}
           </div>
-        </PrivyAuthProvider>
+        </WalletProvider>
       </body>
     </html>
   );

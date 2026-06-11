@@ -1,21 +1,21 @@
 import type { Config } from 'tailwindcss';
 
 /**
- * Monochrome palette — true neutral grays, no hue.
- * Legacy class names (slate / cyan / blue / sky) are all mapped to the same
- * neutral ramp so the entire UI is grayscale. Gain/loss green-red (emerald/red)
- * are intentionally left untouched since they convey data, not branding.
+ * "Editorial Terminal" — warm stone neutrals + a single clay accent.
+ * Legacy class names (slate / cyan / blue / sky / indigo) all map to the warm
+ * stone ramp so the UI is cohesively warm-neutral; the clay accent is applied
+ * deliberately via CSS component classes (.btn-primary, .eyebrow) — never sprayed.
  */
-const NEUTRAL = {
-  100: '#f5f5f5',
-  200: '#e5e5e5',
-  300: '#d4d4d4',
-  400: '#a3a3a3',
-  500: '#737373',
-  600: '#525252',
-  700: '#404040',
-  800: '#262626',
-  900: '#171717',
+const STONE = {
+  100: '#f6f2ea',
+  200: '#e8e1d3',
+  300: '#cdc5b4',
+  400: '#a39a88',
+  500: '#7a7160',
+  600: '#564e41',
+  700: '#3a352c',
+  800: '#252017',
+  900: '#1a160f',
 };
 
 const config: Config = {
@@ -27,22 +27,21 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        slate: NEUTRAL,
-        cyan: NEUTRAL,
-        blue: NEUTRAL,
-        indigo: NEUTRAL,
-        sky: NEUTRAL,
+        slate: STONE,
+        cyan: STONE,
+        blue: STONE,
+        indigo: STONE,
+        sky: STONE,
+        clay: {
+          400: '#d98064',
+          500: '#c96a4d',
+          600: '#b3573b',
+        },
       },
       fontFamily: {
-        sans: [
-          'var(--font-inter)',
-          '-apple-system',
-          'BlinkMacSystemFont',
-          '"Segoe UI"',
-          'Roboto',
-          '"Helvetica Neue"',
-          'sans-serif',
-        ],
+        sans: ['var(--font-sans)', 'system-ui', 'sans-serif'],
+        display: ['var(--font-display)', 'Georgia', 'serif'],
+        mono: ['var(--font-mono)', 'ui-monospace', 'monospace'],
       },
     },
   },

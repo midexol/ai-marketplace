@@ -66,7 +66,7 @@ export default function Home() {
       {/* Hero */}
       <section className="animate-fade-up text-center">
         <div className="mx-auto mb-8 flex h-16 w-16 items-center justify-center rounded-2xl bg-white">
-          <Network className="h-8 w-8 text-[#0a0a0a]" strokeWidth={2} />
+          <Network className="h-8 w-8 text-[#16120b]" strokeWidth={2} />
         </div>
 
         <div className="mb-6 flex justify-center">

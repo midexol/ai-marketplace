@@ -13,12 +13,8 @@ interface AgentCardProps {
   onSelect?: (agent: Agent) => void;
 }
 
-const TYPE_COLORS: Record<string, { bg: string; text: string; ring: string }> = {
-  writing: { bg: 'bg-purple-500/15', text: 'text-purple-300', ring: 'ring-purple-500/30' },
-  research: { bg: 'bg-blue-500/15', text: 'text-blue-300', ring: 'ring-blue-500/30' },
-  governance: { bg: 'bg-emerald-500/15', text: 'text-emerald-300', ring: 'ring-emerald-500/30' },
-  butler: { bg: 'bg-amber-500/15', text: 'text-amber-300', ring: 'ring-amber-500/30' },
-};
+// Uniform warm chip — category is conveyed by the label, not a clashing hue.
+const TYPE_CHIP = 'bg-[#29231a] text-slate-300 ring-[#473e2f]';
 
 export function AgentCard({
   agent,
@@ -27,7 +23,6 @@ export function AgentCard({
   change24h = '0',
   onSelect,
 }: AgentCardProps) {
-  const typeColor = TYPE_COLORS[agent.type] || TYPE_COLORS.writing;
   const isPositiveChange = parseFloat(change24h) >= 0;
 
   return (
@@ -45,16 +40,16 @@ export function AgentCard({
               className="h-12 w-12 rounded-xl object-cover"
             />
           ) : (
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 text-lg font-bold text-white">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#29231a] font-display text-xl font-semibold text-clay-400 ring-1 ring-[#473e2f]">
               {agent.name[0]}
             </div>
           )}
           <div className="min-w-0 flex-1">
-            <h3 className="truncate text-lg font-semibold text-white transition group-hover:text-cyan-300">
+            <h3 className="truncate font-display text-lg font-medium text-white transition group-hover:text-clay-400">
               {agent.name}
             </h3>
             <span
-              className={`mt-1 inline-block rounded-md px-2 py-0.5 text-xs font-medium ring-1 ${typeColor.bg} ${typeColor.text} ${typeColor.ring}`}
+              className={`mt-1 inline-block rounded-md px-2 py-0.5 text-xs font-medium ring-1 ${TYPE_CHIP}`}
             >
               {agent.type.charAt(0).toUpperCase() + agent.type.slice(1)}
             </span>
@@ -67,7 +62,7 @@ export function AgentCard({
         </p>
 
         {/* Stats */}
-        <div className="mb-5 grid grid-cols-3 gap-3 border-y border-[#2a2a2a] py-4">
+        <div className="mb-5 grid grid-cols-3 gap-3 border-y border-[#342d22] py-4">
           <div>
             <p className="text-[11px] uppercase tracking-wide text-slate-500">Price</p>
             <p className="mt-0.5 text-sm font-semibold text-white">{formatPrice(price)}</p>

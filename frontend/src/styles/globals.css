@@ -3,13 +3,20 @@
 @tailwind utilities;
 
 :root {
-  --bg: #0a0a0a;
-  --surface: #161616; /* solid card surface */
-  --surface-2: #1e1e1e; /* solid hover/raised surface */
-  --border: #2a2a2a; /* solid hairline border */
-  --border-strong: #3a3a3a;
-  --text: #fafafa;
-  --text-muted: #a3a3a3;
+  --bg: #16120b;
+  --bg-2: #1b1710;
+  --surface: #201b13;   /* solid card */
+  --surface-2: #29231a; /* raised / hover */
+  --border: #342d22;
+  --border-strong: #473e2f;
+  --text: #efe8da;
+  --text-muted: #a39a88;
+  --text-faint: #6f6657;
+  --accent: #c96a4d;       /* clay / terracotta */
+  --accent-hover: #d98064;
+  --accent-ink: #1a0f09;   /* dark text on accent */
+  --gain: #6fae6a;
+  --loss: #d2664f;
 }
 
 * {
@@ -27,41 +34,77 @@ body {
   -moz-osx-font-smoothing: grayscale;
   background-color: var(--bg);
   color: var(--text);
+  font-feature-settings: 'ss01', 'cv01';
 }
 
-/* Clean neutral background — no color, no decorative grid */
+/* Editorial serif for headings, set centrally so pages need no edits */
+h1, h2, h3 {
+  font-family: var(--font-display);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--text);
+}
+
+@layer base {
+  /* Tabular, monospaced figures read as "terminal" data */
+  .font-mono {
+    font-feature-settings: 'tnum';
+  }
+}
+
+/* ---------- Background: warm vignette + faint paper grain (no grid/glass) ---------- */
 .app-bg {
   position: relative;
   min-height: 100vh;
   background-color: var(--bg);
+  background-image:
+    radial-gradient(60rem 40rem at 75% -10%, rgba(201, 106, 77, 0.08), transparent 60%),
+    radial-gradient(50rem 40rem at 0% 0%, rgba(120, 96, 60, 0.06), transparent 55%);
+}
+
+.app-bg::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.app-bg > * {
+  position: relative;
+  z-index: 1;
 }
 
 ::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
+  width: 11px;
+  height: 11px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(163, 163, 163, 0.25);
+  background: var(--border-strong);
   border-radius: 8px;
-  border: 2px solid var(--bg);
+  border: 3px solid var(--bg);
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(163, 163, 163, 0.4);
+  background: #5c5141;
 }
 
 ::selection {
-  background: rgba(245, 245, 245, 0.2);
+  background: rgba(201, 106, 77, 0.32);
+  color: #fff;
 }
 
 @layer components {
-  /* Solid card — opaque surface, hairline border (no glass/blur) */
+  /* Solid card with genuine elevation — no transparency, no blur */
   .card {
-    @apply relative rounded-xl;
+    @apply relative rounded-lg;
     background-color: var(--surface);
     border: 1px solid var(--border);
+    box-shadow: 0 1px 0 0 rgba(255, 250, 240, 0.02) inset, 0 8px 24px -16px rgba(0, 0, 0, 0.7);
   }
   .card-hover {
     @apply transition-colors duration-200;
@@ -71,14 +114,14 @@ body {
     background-color: var(--surface-2);
   }
 
-  /* Primary: white surface, near-black text (monochrome, Vercel-style) */
+  /* Primary: clay surface, dark ink — the one place color is loud */
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded-lg px-5 py-2.5 text-sm font-semibold transition-colors duration-150;
-    background-color: #fafafa;
-    color: #0a0a0a;
+    @apply inline-flex items-center justify-center gap-2 rounded-md px-5 py-2.5 text-sm font-semibold transition-colors duration-150;
+    background-color: var(--accent);
+    color: var(--accent-ink);
   }
   .btn-primary:hover {
-    background-color: #d4d4d4;
+    background-color: var(--accent-hover);
   }
   .btn-primary:active {
     transform: translateY(0.5px);
@@ -88,49 +131,56 @@ body {
     cursor: not-allowed;
   }
 
-  /* Secondary: outlined neutral */
+  /* Secondary: warm outline */
   .btn-ghost {
-    @apply inline-flex items-center justify-center gap-2 rounded-lg px-5 py-2.5 text-sm font-medium transition-colors duration-150;
+    @apply inline-flex items-center justify-center gap-2 rounded-md px-5 py-2.5 text-sm font-medium transition-colors duration-150;
     color: var(--text);
-    border: 1px solid var(--border);
+    border: 1px solid var(--border-strong);
     background-color: var(--surface);
   }
   .btn-ghost:hover {
     background-color: var(--surface-2);
-    border-color: var(--border-strong);
+    border-color: #5c5141;
   }
 
   .chip {
     @apply inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium;
     color: var(--text-muted);
     border: 1px solid var(--border);
-    background-color: var(--surface);
+    background-color: var(--bg-2);
   }
 
-  /* Plain white headings/accents — no gradient, no color */
+  /* Wordmark / hero accent — serif, warm clay wash */
   .text-gradient {
-    color: var(--text);
+    font-family: var(--font-display);
+    background-image: linear-gradient(105deg, var(--text) 0%, var(--accent-hover) 140%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
   }
   .text-gradient-accent {
-    color: var(--text);
+    color: var(--accent-hover);
+    font-family: var(--font-mono);
+    font-feature-settings: 'tnum';
   }
 
+  /* Editorial kicker — uppercase, clay, hairline rule feel */
   .eyebrow {
     @apply inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold uppercase;
-    letter-spacing: 0.1em;
-    color: var(--text-muted);
-    border: 1px solid var(--border);
-    background-color: var(--surface);
+    letter-spacing: 0.18em;
+    color: var(--accent-hover);
+    border: 1px solid var(--border-strong);
+    background-color: var(--bg-2);
   }
 }
 
 @layer utilities {
   .animate-fade-up {
-    animation: fade-up 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation: fade-up 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
   }
 }
 
 @keyframes fade-up {
-  from { opacity: 0; transform: translateY(14px); }
+  from { opacity: 0; transform: translateY(16px); }
   to { opacity: 1; transform: translateY(0); }
 }

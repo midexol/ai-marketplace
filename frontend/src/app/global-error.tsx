@@ -22,7 +22,7 @@ export default function GlobalError({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          backgroundColor: '#0a0a0a',
+          backgroundColor: '#16120b',
           color: '#fafafa',
           fontFamily:
             '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif',
@@ -39,7 +39,7 @@ export default function GlobalError({
             onClick={() => reset()}
             style={{
               backgroundColor: '#fafafa',
-              color: '#0a0a0a',
+              color: '#16120b',
               border: 'none',
               borderRadius: 8,
               padding: '0.625rem 1.25rem',

@@ -39,7 +39,7 @@ export function Header() {
   const walletAddress = user?.address || '';
 
   return (
-    <header className="sticky top-0 z-50 border-b border-[#2a2a2a] bg-[#0a0a0a]">
+    <header className="sticky top-0 z-50 border-b border-[#342d22] bg-[#16120b]">
       <div className="container mx-auto px-4 py-3.5">
         <div className="flex items-center justify-between gap-8">
           {/* Logo */}
@@ -62,8 +62,8 @@ export function Header() {
                   href={item.href}
                   className={`rounded-lg px-3.5 py-2 text-sm font-medium transition ${
                     isActive(item.href)
-                      ? 'bg-[#232323] text-cyan-300'
-                      : 'text-slate-400 hover:bg-[#1e1e1e] hover:text-white'
+                      ? 'bg-[#29231a] text-cyan-300'
+                      : 'text-slate-400 hover:bg-[#201b13] hover:text-white'
                   }`}
                 >
                   {item.label}

@@ -26,8 +26,11 @@ export default function PortfolioPage() {
           apiClient.getPortfolio(userAddress),
           apiClient.getPortfolioValue(userAddress),
         ]);
-        setPortfolio(portfolioData);
-        setValue(valueData);
+        setPortfolio(Array.isArray(portfolioData) ? portfolioData : []);
+        setValue({
+          totalValue: valueData?.totalValue ?? '0',
+          change24h: valueData?.change24h ?? '0%',
+        });
       } catch (err) {
         console.error('Failed to fetch portfolio:', err);
       } finally {
@@ -51,7 +54,7 @@ export default function PortfolioPage() {
     );
   }
 
-  const isNegative = value.change24h.includes('-');
+  const isNegative = (value.change24h ?? '').includes('-');
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-12">

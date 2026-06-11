@@ -2,6 +2,17 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --bg: #100f0d;
+  --surface: 32 30 26; /* rgb of #201e1a, used with /alpha */
+  --border: 245 240 230; /* warm white for low-alpha borders */
+  --accent: #e6a528;
+  --accent-bright: #f6c356;
+  --accent-ink: #1a1509; /* dark text on accent */
+  --text: #f1ede4;
+  --text-muted: #9a958b;
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -15,18 +26,19 @@ html {
 body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #060a14;
-  color: #e2e8f0;
+  background-color: var(--bg);
+  color: var(--text);
+  letter-spacing: -0.011em;
 }
 
-/* ---------- App background: deep space + grid + glow ---------- */
+/* ---------- App background: warm graphite, faint amber wash, fine grid ---------- */
 .app-bg {
   position: relative;
   min-height: 100vh;
-  background-color: #060a14;
+  background-color: var(--bg);
   background-image:
-    radial-gradient(60rem 60rem at 80% -10%, rgba(6, 182, 212, 0.12), transparent 60%),
-    radial-gradient(50rem 50rem at 0% 10%, rgba(59, 130, 246, 0.10), transparent 55%);
+    radial-gradient(48rem 36rem at 88% -8%, rgba(230, 165, 40, 0.07), transparent 60%),
+    radial-gradient(40rem 34rem at -6% 4%, rgba(230, 165, 40, 0.04), transparent 55%);
 }
 
 .app-bg::before {
@@ -35,86 +47,122 @@ body {
   inset: 0;
   pointer-events: none;
   background-image:
-    linear-gradient(rgba(148, 163, 184, 0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(148, 163, 184, 0.04) 1px, transparent 1px);
-  background-size: 44px 44px;
-  mask-image: radial-gradient(ellipse 100% 60% at 50% 0%, #000 40%, transparent 100%);
+    linear-gradient(rgba(245, 240, 230, 0.022) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(245, 240, 230, 0.022) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(ellipse 90% 55% at 50% 0%, #000 35%, transparent 100%);
 }
 
 ::-webkit-scrollbar {
-  width: 9px;
-  height: 9px;
+  width: 10px;
+  height: 10px;
 }
 ::-webkit-scrollbar-track {
-  background: rgba(15, 23, 42, 0.4);
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(6, 182, 212, 0.4);
-  border-radius: 6px;
+  background: rgba(245, 240, 230, 0.1);
+  border-radius: 8px;
+  border: 2px solid var(--bg);
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(6, 182, 212, 0.7);
+  background: rgba(245, 240, 230, 0.18);
+}
+
+::selection {
+  background: rgba(230, 165, 40, 0.28);
+  color: #fff;
 }
 
 @layer components {
-  /* Glass card */
+  /* Solid surface card — flat, hairline border, soft depth (no neon glow) */
   .card {
-    @apply relative rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-xl;
+    @apply relative rounded-xl border;
+    background-color: rgb(var(--surface) / 0.55);
+    border-color: rgb(var(--border) / 0.08);
+    box-shadow: 0 1px 0 0 rgb(var(--border) / 0.04) inset;
   }
   .card-hover {
-    @apply transition-all duration-300 hover:border-cyan-400/40 hover:bg-white/[0.05] hover:-translate-y-0.5;
+    @apply transition-all duration-200;
+  }
+  .card-hover:hover {
+    border-color: rgb(var(--border) / 0.16);
+    background-color: rgb(var(--surface) / 0.8);
+    transform: translateY(-2px);
   }
 
-  /* Buttons */
+  /* Primary: solid amber, dark ink text — premium, not glowing */
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded-xl px-6 py-3 font-semibold text-white
-      bg-gradient-to-r from-cyan-500 to-blue-600
-      shadow-[0_8px_30px_-8px_rgba(6,182,212,0.6)]
-      transition-all duration-200 hover:from-cyan-400 hover:to-blue-500 hover:shadow-[0_10px_40px_-8px_rgba(6,182,212,0.8)]
-      active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-5 py-2.5 text-sm font-semibold transition-all duration-150;
+    background-color: var(--accent);
+    color: var(--accent-ink);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
   }
+  .btn-primary:hover {
+    background-color: var(--accent-bright);
+  }
+  .btn-primary:active {
+    transform: translateY(0.5px);
+  }
+  .btn-primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  /* Ghost: hairline outline on warm surface */
   .btn-ghost {
-    @apply inline-flex items-center justify-center gap-2 rounded-xl px-6 py-3 font-medium text-slate-200
-      border border-white/10 bg-white/[0.03] transition-all duration-200
-      hover:border-white/20 hover:bg-white/[0.06] active:scale-[0.98];
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-5 py-2.5 text-sm font-medium transition-all duration-150;
+    color: var(--text);
+    border: 1px solid rgb(var(--border) / 0.12);
+    background-color: rgb(var(--border) / 0.02);
+  }
+  .btn-ghost:hover {
+    border-color: rgb(var(--border) / 0.22);
+    background-color: rgb(var(--border) / 0.06);
   }
 
-  /* Chips / badges */
   .chip {
-    @apply inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04]
-      px-3 py-1 text-xs font-medium text-slate-300;
+    @apply inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium;
+    color: var(--text-muted);
+    border: 1px solid rgb(var(--border) / 0.1);
+    background-color: rgb(var(--border) / 0.03);
   }
 
-  /* Gradient text */
+  /* Headings stay solid warm-white; the wordmark gets the amber wash */
   .text-gradient {
-    @apply bg-gradient-to-r from-white via-cyan-100 to-cyan-300 bg-clip-text text-transparent;
+    background-image: linear-gradient(100deg, #f6efe1 0%, var(--accent-bright) 130%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
   }
   .text-gradient-accent {
-    @apply bg-gradient-to-r from-cyan-300 to-blue-400 bg-clip-text text-transparent;
+    color: var(--accent-bright);
   }
 
-  /* Section label */
   .eyebrow {
-    @apply inline-flex items-center gap-2 rounded-full border border-cyan-400/20 bg-cyan-400/10
-      px-3 py-1 text-xs font-semibold uppercase tracking-widest text-cyan-300;
+    @apply inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold uppercase;
+    letter-spacing: 0.16em;
+    color: var(--accent-bright);
+    border: 1px solid rgba(230, 165, 40, 0.22);
+    background-color: rgba(230, 165, 40, 0.07);
   }
 }
 
 @layer utilities {
   .animate-float {
-    animation: float 6s ease-in-out infinite;
+    animation: float 7s ease-in-out infinite;
   }
   .animate-fade-up {
-    animation: fade-up 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation: fade-up 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
   }
 }
 
 @keyframes float {
   0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
+  50% { transform: translateY(-8px); }
 }
 
 @keyframes fade-up {
-  from { opacity: 0; transform: translateY(16px); }
+  from { opacity: 0; transform: translateY(14px); }
   to { opacity: 1; transform: translateY(0); }
 }

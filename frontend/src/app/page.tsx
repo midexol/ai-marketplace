@@ -65,8 +65,8 @@ export default function Home() {
     <main className="relative mx-auto max-w-6xl px-4 pb-24 pt-16 md:pt-24">
       {/* Hero */}
       <section className="animate-fade-up text-center">
-        <div className="mx-auto mb-8 flex h-20 w-20 items-center justify-center rounded-3xl bg-gradient-to-br from-cyan-500 to-blue-600 shadow-[0_12px_50px_-12px_rgba(6,182,212,0.7)] animate-float">
-          <Network className="h-10 w-10 text-white" />
+        <div className="mx-auto mb-8 flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-400 to-blue-500 shadow-[0_18px_40px_-18px_rgba(230,165,40,0.55)] animate-float">
+          <Network className="h-10 w-10 text-[#1a1509]" strokeWidth={2.25} />
         </div>
 
         <div className="mb-6 flex justify-center">

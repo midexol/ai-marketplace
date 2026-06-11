@@ -45,7 +45,7 @@ export function AgentCard({
               className="h-12 w-12 rounded-xl object-cover"
             />
           ) : (
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 text-lg font-bold text-white">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-400 to-blue-500 text-lg font-bold text-[#1a1509]">
               {agent.name[0]}
             </div>
           )}

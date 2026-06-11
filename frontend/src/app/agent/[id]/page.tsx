@@ -73,7 +73,7 @@ export default function AgentDetailPage({ params }: PageProps) {
         {agent.avatarUrl ? (
           <img src={agent.avatarUrl} alt={agent.name} className="h-24 w-24 rounded-2xl object-cover" />
         ) : (
-          <div className="flex h-24 w-24 items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-500 to-blue-600 text-4xl font-bold text-white">
+          <div className="flex h-24 w-24 items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-400 to-blue-500 text-4xl font-bold text-[#1a1509]">
             {agent.name[0]}
           </div>
         )}

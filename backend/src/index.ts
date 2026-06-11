@@ -3,6 +3,7 @@ import { createApp } from './app';
 import { env } from '@/config/env';
 import { logger } from '@/utils/logger';
 import { initializeDatabase, closeDatabase } from '@/database/data-source';
+import { seedDatabase } from '@/database/seed';
 
 let server: any;
 
@@ -10,6 +11,14 @@ async function main() {
   try {
     // Initialize database
     await initializeDatabase();
+
+    // Populate demo data when the database is empty (idempotent).
+    // Keeps the marketplace populated for the demo even after a fresh deploy.
+    try {
+      await seedDatabase();
+    } catch (seedError) {
+      logger.warn('Seeding skipped due to error (continuing):', seedError);
+    }
 
     // Create and start Express app
     const app = createApp();

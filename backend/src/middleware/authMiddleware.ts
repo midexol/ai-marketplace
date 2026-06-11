@@ -25,14 +25,19 @@ export function authMiddleware(req: Request, res: Response, next: NextFunction) 
   const token = parts[1];
 
   try {
-    const decoded = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
+    // The frontend sends a plain base64-encoded JSON blob:
+    //   btoa(JSON.stringify({ sub, wallet: { address } }))
+    // Also tolerate a 3-part JWT by decoding its payload segment.
+    const segment = token.includes('.') ? token.split('.')[1] : token;
+    const decoded = JSON.parse(Buffer.from(segment, 'base64').toString('utf-8'));
 
-    if (!decoded.sub || !decoded.wallet) {
+    const address = decoded?.wallet?.address;
+    if (!decoded?.sub || !address) {
       return next(new AppError('Invalid token format', 401, 'INVALID_TOKEN'));
     }
 
     req.userId = decoded.sub;
-    req.userAddress = decoded.wallet.address.toLowerCase();
+    req.userAddress = String(address).toLowerCase();
 
     next();
   } catch (error) {

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAgent } from '@/hooks/useAgent';
 import { useTrades, useMarketPrice } from '@/hooks/useMarketplace';
 import { useAppStore } from '@/store/useAppStore';
@@ -32,6 +32,14 @@ export default function AgentDetailPage({ params }: PageProps) {
   const { data: agent, isLoading: agentLoading, error: agentError } = useAgent(params.id);
   const { data: trades, isLoading: tradesLoading } = useTrades(params.id);
   const { data: priceData } = useMarketPrice(params.id, selectedChain);
+  const chains = Array.isArray(agent?.chains) ? agent.chains.filter(Boolean) : [];
+  const activeChain = chains.includes(selectedChain) ? selectedChain : chains[0] || 'ethereum';
+
+  useEffect(() => {
+    if (agent && activeChain !== selectedChain) {
+      setSelectedChain(activeChain);
+    }
+  }, [activeChain, agent, selectedChain]);
 
   const mockChartData = [
     { timestamp: Date.now() - 7 * 86400000, price: 0.38 },
@@ -76,14 +84,14 @@ export default function AgentDetailPage({ params }: PageProps) {
           <img src={agent.avatarUrl} alt={agent.name} className="h-24 w-24 rounded-2xl object-cover" />
         ) : (
           <div className="flex h-24 w-24 items-center justify-center rounded-2xl bg-gradient-to-br from-[#ffb640] via-[#ffd166] to-[#f59e1b] text-4xl font-bold text-[#211100] shadow-[0_22px_48px_-24px_rgba(255,190,76,0.95)]">
-            {agent.name[0]}
+            {(agent.name || 'Untitled Agent')[0]}
           </div>
         )}
         <div className="flex-1">
           <h1 className="text-4xl font-bold text-white">{agent.name}</h1>
           <p className="mt-2 max-w-2xl text-slate-400">{agent.description}</p>
           <div className="mt-4 flex flex-wrap items-center gap-3">
-            <span className="chip capitalize text-cyan-300">{agent.type}</span>
+            <span className="chip capitalize text-cyan-300">{agent.type || 'writing'}</span>
             <span className="text-sm text-slate-500">
               by {shortenAddress(agent.creatorAddress)}
             </span>
@@ -102,19 +110,23 @@ export default function AgentDetailPage({ params }: PageProps) {
           <div>
             <label className="mb-2 block text-sm font-medium text-slate-300">Blockchain</label>
             <div className="flex flex-wrap gap-2">
-              {agent.chains.map((chain) => (
-                <button
-                  key={chain}
-                  onClick={() => setSelectedChain(chain)}
-                  className={`rounded-lg px-4 py-2 font-medium capitalize transition ${
-                    selectedChain === chain
-                      ? 'bg-cyan-600 text-white'
-                      : 'border border-[#493113] bg-[#23170a] text-slate-300 hover:border-[#76501d]'
-                  }`}
-                >
-                  {chain}
-                </button>
-              ))}
+              {chains.length > 0 ? (
+                chains.map((chain) => (
+                  <button
+                    key={chain}
+                    onClick={() => setSelectedChain(chain)}
+                    className={`rounded-lg px-4 py-2 font-medium capitalize transition ${
+                      activeChain === chain
+                        ? 'bg-cyan-600 text-white'
+                        : 'border border-[#493113] bg-[#23170a] text-slate-300 hover:border-[#76501d]'
+                    }`}
+                  >
+                    {chain}
+                  </button>
+                ))
+              ) : (
+                <span className="chip">No chains configured</span>
+              )}
             </div>
           </div>
 
@@ -151,14 +163,14 @@ export default function AgentDetailPage({ params }: PageProps) {
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <div className="card p-6">
               <h3 className="mb-4 font-semibold text-white">Agent Stats</h3>
-              <Row label="Type" value={agent.type} capitalize />
-              <Row label="Networks" value={String(agent.chains.length)} />
+              <Row label="Type" value={agent.type || 'writing'} capitalize />
+              <Row label="Networks" value={String(chains.length)} />
               <Row label="Created" value={formatDate(agent.createdAt)} small />
               <Row label="Last Updated" value={formatDate(agent.updatedAt)} small />
             </div>
             <div className="card p-6">
               <h3 className="mb-4 font-semibold text-white">Contract Info</h3>
-              {agent.chains.map((chain) => (
+              {chains.map((chain) => (
                 <div key={chain} className="flex items-center justify-between py-1.5">
                   <span className="text-sm capitalize text-slate-400">{chain}</span>
                   <span className="font-mono text-xs text-cyan-400">

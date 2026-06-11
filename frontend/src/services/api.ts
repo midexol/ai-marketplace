@@ -12,6 +12,45 @@ function resolveApiBase(): string {
   return `${trimmed}/api`;
 }
 
+function normalizeStringArray(value: unknown): string[] {
+  if (Array.isArray(value)) {
+    return value.filter((item): item is string => typeof item === 'string' && item.trim().length > 0);
+  }
+
+  if (typeof value === 'string') {
+    return value
+      .split(',')
+      .map((item) => item.trim())
+      .filter(Boolean);
+  }
+
+  return [];
+}
+
+function normalizeRecord(value: unknown): Record<string, string> {
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? (value as Record<string, string>)
+    : {};
+}
+
+function normalizeAgent(agent: Agent): Agent {
+  return {
+    ...agent,
+    name: agent.name || 'Untitled Agent',
+    description: agent.description || '',
+    type: agent.type || 'writing',
+    chains: normalizeStringArray(agent.chains),
+    tokenAddresses: normalizeRecord(agent.tokenAddresses),
+  };
+}
+
+function normalizePaginatedAgents(response: PaginatedResponse<Agent>): PaginatedResponse<Agent> {
+  return {
+    ...response,
+    data: Array.isArray(response.data) ? response.data.map(normalizeAgent) : [],
+  };
+}
+
 class ApiClient {
   private client: AxiosInstance;
   private authToken: string | null = null;
@@ -37,7 +76,7 @@ class ApiClient {
       (error) => {
         const apiError: ApiError = {
           code: error.response?.data?.code || 'UNKNOWN_ERROR',
-          message: error.response?.data?.message || error.message,
+          message: error.response?.data?.message || error.response?.data?.error || error.message,
           status: error.response?.status || 500,
         };
         return Promise.reject(apiError);
@@ -56,22 +95,22 @@ class ApiClient {
   // Agents
   async getAgents(page = 1, limit = 20): Promise<PaginatedResponse<Agent>> {
     const { data } = await this.client.get('/agents', { params: { page, limit } });
-    return data;
+    return normalizePaginatedAgents(data);
   }
 
   async getAgent(id: string): Promise<Agent> {
     const { data } = await this.client.get(`/agents/${id}`);
-    return data;
+    return normalizeAgent(data);
   }
 
   async createAgent(agent: Partial<Agent>): Promise<Agent> {
     const { data } = await this.client.post('/agents', agent);
-    return data;
+    return normalizeAgent(data);
   }
 
   async updateAgent(id: string, agent: Partial<Agent>): Promise<Agent> {
     const { data } = await this.client.patch(`/agents/${id}`, agent);
-    return data;
+    return normalizeAgent(data);
   }
 
   // Marketplace

@@ -24,6 +24,9 @@ export function AgentCard({
   onSelect,
 }: AgentCardProps) {
   const isPositiveChange = parseFloat(change24h) >= 0;
+  const name = agent.name || 'Untitled Agent';
+  const type = agent.type || 'writing';
+  const chains = Array.isArray(agent.chains) ? agent.chains.filter(Boolean) : [];
 
   return (
     <Link href={`/agent/${agent.id}`}>
@@ -36,22 +39,22 @@ export function AgentCard({
           {agent.avatarUrl ? (
             <img
               src={agent.avatarUrl}
-              alt={agent.name}
+              alt={name}
               className="h-12 w-12 rounded-xl object-cover"
             />
           ) : (
             <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#30200c] font-display text-xl font-semibold text-clay-400 ring-1 ring-[#76501d]">
-              {agent.name[0]}
+              {name[0]}
             </div>
           )}
           <div className="min-w-0 flex-1">
             <h3 className="truncate font-display text-lg font-medium text-white transition group-hover:text-clay-400">
-              {agent.name}
+              {name}
             </h3>
             <span
               className={`mt-1 inline-block rounded-md px-2 py-0.5 text-xs font-medium ring-1 ${TYPE_CHIP}`}
             >
-              {agent.type.charAt(0).toUpperCase() + agent.type.slice(1)}
+              {type.charAt(0).toUpperCase() + type.slice(1)}
             </span>
           </div>
         </div>
@@ -90,11 +93,15 @@ export function AgentCard({
 
         {/* Chains */}
         <div className="flex flex-wrap gap-2">
-          {agent.chains.map((chain) => (
-            <span key={chain} className="chip capitalize">
-              {chain}
-            </span>
-          ))}
+          {chains.length > 0 ? (
+            chains.map((chain) => (
+              <span key={chain} className="chip capitalize">
+                {chain}
+              </span>
+            ))
+          ) : (
+            <span className="chip">No chains</span>
+          )}
         </div>
       </div>
     </Link>

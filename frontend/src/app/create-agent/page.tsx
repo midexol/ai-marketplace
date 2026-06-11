@@ -1,6 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useQueryClient } from '@tanstack/react-query';
 import { useAppStore } from '@/store/useAppStore';
 import { apiClient } from '@/services/api';
 import { AgentType } from '@/types';
@@ -17,6 +19,8 @@ const AGENT_TYPES: { label: string; value: AgentType }[] = [
 const CHAINS = ['ethereum', 'polygon', 'arbitrum', 'base'];
 
 export default function CreateAgentPage() {
+  const router = useRouter();
+  const queryClient = useQueryClient();
   const userAddress = useAppStore((state) => state.userAddress);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -55,11 +59,18 @@ export default function CreateAgentPage() {
       if (!formData.description.trim()) throw new Error('Agent description is required');
       if (formData.chains.length === 0) throw new Error('Select at least one blockchain');
 
-      const response = await apiClient.createAgent({ ...formData, creatorAddress: userAddress });
-      alert(`Agent created! ID: ${response.id}`);
+      await apiClient.createAgent({ ...formData, creatorAddress: userAddress });
+      await queryClient.invalidateQueries({ queryKey: ['agents'] });
       setFormData({ name: '', description: '', type: 'writing', chains: ['ethereum'] });
+      router.push('/marketplace');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create agent');
+      const message =
+        err instanceof Error
+          ? err.message
+          : err && typeof err === 'object' && 'message' in err
+            ? String(err.message)
+            : 'Failed to create agent';
+      setError(message);
     } finally {
       setIsLoading(false);
     }

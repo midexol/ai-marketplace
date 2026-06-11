@@ -9,14 +9,15 @@ import {
   ReactNode,
 } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import type { PrivateKeyAccount } from 'viem';
 import { createSmartAccount, type SmartAccount } from '@/lib/smartAccount';
 
 /**
  * Wallet layer: Web3Auth embedded wallet (email login) → MetaMask Smart Account.
  *
- * Web3Auth produces an EOA private key; we wrap it in a MetaMask Hybrid smart
- * account (Delegation Toolkit) on Base Sepolia. ERC-7710 delegations and the
- * 1Shot relayer build on `smartAccount`.
+ * Web3Auth produces an EOA private key; we wrap it in a MetaMask Stateless7702
+ * smart account (Smart Accounts Kit) on Base Sepolia. ERC-7710 delegations and
+ * the 1Shot relayer build on `smartAccount` + `signerAccount`.
  *
  * Exposes a provider-agnostic surface via `useAuth()` so pages never import the
  * SDK directly. Requires NEXT_PUBLIC_WEB3AUTH_CLIENT_ID; without it the app
@@ -39,6 +40,8 @@ interface AuthContextValue {
   user: AuthUser | null;
   /** MetaMask Smart Account — use for user ops, delegations, relayed txns. */
   smartAccount: SmartAccount | null;
+  /** Underlying viem signer — needed to sign EIP-7702 authorizations. */
+  signerAccount: PrivateKeyAccount | null;
   login: () => Promise<void>;
   logout: () => Promise<void>;
   /** Base64 token sent to the backend as a Bearer credential. */
@@ -66,6 +69,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(false);
   const [user, setUser] = useState<AuthUser | null>(null);
   const [smartAccount, setSmartAccount] = useState<SmartAccount | null>(null);
+  const [signerAccount, setSignerAccount] = useState<PrivateKeyAccount | null>(null);
 
   // Initialize the SDK on mount (client-side only).
   useEffect(() => {
@@ -155,8 +159,9 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       // Wrap the embedded-wallet key in a MetaMask Smart Account.
       try {
         const privateKey: string = await provider.request({ method: 'eth_private_key' });
-        const sa = await createSmartAccount(privateKey);
+        const { smartAccount: sa, account } = await createSmartAccount(privateKey);
         setSmartAccount(sa);
+        setSignerAccount(account);
         setUser({ ...baseUser, smartAccountAddress: sa.address });
       } catch (saErr) {
         // Non-fatal: keep the EOA session even if the smart account fails.
@@ -182,6 +187,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     }
     setUser(null);
     setSmartAccount(null);
+    setSignerAccount(null);
   }, [web3auth]);
 
   const getToken = useCallback(() => (user ? encodeToken(user) : null), [user]);
@@ -191,6 +197,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     authenticated: !!user,
     user,
     smartAccount,
+    signerAccount,
     login,
     logout,
     getToken,

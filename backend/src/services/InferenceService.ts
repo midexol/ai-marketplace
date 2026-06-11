@@ -11,26 +11,18 @@ interface LLMResponse {
 }
 
 export class InferenceService {
-  private openaiApiKey: string | undefined;
-  private anthropicApiKey: string | undefined;
+  private veniceApiKey: string | undefined;
+  private readonly veniceModel = 'llama-3.3-70b';
 
   constructor() {
-    this.openaiApiKey = env.OPENAI_API_KEY;
-    this.anthropicApiKey = env.ANTHROPIC_API_KEY;
+    this.veniceApiKey = env.VENICE_API_KEY;
   }
 
   async runInference(request: InferenceRequest): Promise<InferenceResponse> {
     try {
-      // Route to appropriate LLM based on config
-      let response: LLMResponse;
-
-      if (this.anthropicApiKey) {
-        response = await this.callClaude(request);
-      } else if (this.openaiApiKey) {
-        response = await this.callOpenAI(request);
-      } else {
-        response = await this.callMockLLM(request);
-      }
+      const response = this.veniceApiKey
+        ? await this.callVenice(request)
+        : await this.callMockLLM(request);
 
       logger.info(`Inference completed for agent ${request.agentId}`, {
         model: response.model,
@@ -49,86 +41,35 @@ export class InferenceService {
     }
   }
 
-  private async callClaude(request: InferenceRequest): Promise<LLMResponse> {
+  private async callVenice(request: InferenceRequest): Promise<LLMResponse> {
     try {
       const systemPrompt = this.getSystemPrompt(request.type);
 
+      // Venice exposes an OpenAI-compatible chat completions endpoint.
       const response = await axios.post(
-        'https://api.anthropic.com/v1/messages',
+        'https://api.venice.ai/api/v1/chat/completions',
         {
-          model: 'claude-3-5-sonnet-20241022',
+          model: this.veniceModel,
           max_tokens: 1024,
-          system: systemPrompt,
           messages: [
-            {
-              role: 'user',
-              content: request.prompt,
-            },
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: request.prompt },
           ],
         },
         {
           headers: {
-            'x-api-key': this.anthropicApiKey,
-            'anthropic-version': '2023-06-01',
-            'content-type': 'application/json',
-          },
-        }
-      );
-
-      const content = response.data.content[0]?.text || '';
-      const tokens = response.data.usage?.output_tokens || 0;
-
-      return {
-        content,
-        tokens,
-        model: 'claude-3-5-sonnet-20241022',
-      };
-    } catch (error) {
-      logger.error('Claude API call failed:', error);
-      // Fallback to mock if API fails
-      return this.callMockLLM(request);
-    }
-  }
-
-  private async callOpenAI(request: InferenceRequest): Promise<LLMResponse> {
-    try {
-      const systemPrompt = this.getSystemPrompt(request.type);
-
-      const response = await axios.post(
-        'https://api.openai.com/v1/chat/completions',
-        {
-          model: 'gpt-4-turbo',
-          messages: [
-            {
-              role: 'system',
-              content: systemPrompt,
-            },
-            {
-              role: 'user',
-              content: request.prompt,
-            },
-          ],
-          max_tokens: 1024,
-        },
-        {
-          headers: {
-            'Authorization': `Bearer ${this.openaiApiKey}`,
+            Authorization: `Bearer ${this.veniceApiKey}`,
             'Content-Type': 'application/json',
           },
         }
       );
 
-      const content = response.data.choices[0]?.message?.content || '';
+      const content = response.data.choices?.[0]?.message?.content || '';
       const tokens = response.data.usage?.completion_tokens || 0;
 
-      return {
-        content,
-        tokens,
-        model: 'gpt-4-turbo',
-      };
+      return { content, tokens, model: this.veniceModel };
     } catch (error) {
-      logger.error('OpenAI API call failed:', error);
-      // Fallback to mock if API fails
+      logger.error('Venice API call failed, falling back to mock:', error);
       return this.callMockLLM(request);
     }
   }
@@ -136,7 +77,7 @@ export class InferenceService {
   private async callMockLLM(request: InferenceRequest): Promise<LLMResponse> {
     // Mock implementation for development/testing
     const mockResponses: Record<string, string> = {
-      writing: `I've analyzed your request and composed a response. This is a mock response for the "${request.agentId}" writing agent. The prompt you provided was: "${request.prompt}". In a production environment, this would be replaced with actual LLM output from Claude or OpenAI.`,
+      writing: `I've analyzed your request and composed a response. This is a mock response for the "${request.agentId}" writing agent. The prompt you provided was: "${request.prompt}". In a production environment, this would be replaced with actual LLM output from Venice.`,
       research: `Research findings: Based on your query about "${request.prompt}", here are some insights. This mock research agent would provide detailed analysis and citations in production.`,
       governance: `Governance analysis: For the proposal "${request.prompt}", here's my assessment of the governance implications. A production governance agent would analyze on-chain voting patterns and stakeholder positions.`,
       butler: `Butler response: I'm ready to assist with "${request.prompt}". This mock butler agent would handle various administrative tasks and queries in production.`,

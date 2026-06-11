@@ -15,10 +15,8 @@ const envSchema = z.object({
   // Blockchain - Single Alchemy API key for all chains (optional for local demo)
   ALCHEMY_API_KEY: z.string().default('demo'),
 
-  // LLM APIs
+  // LLM API - Venice (OpenAI-compatible)
   VENICE_API_KEY: z.string().optional(),
-  OPENAI_API_KEY: z.string().optional(),
-  ANTHROPIC_API_KEY: z.string().optional(),
 
   // CORS
   CORS_ORIGIN: z.string().default('http://localhost:3000'),

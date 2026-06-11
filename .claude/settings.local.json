@@ -4,7 +4,8 @@
       "Bash(npm init *)",
       "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\user\\\\ai-marketplace\" -Force)",
       "Bash(Select-Object Name, FullName)",
-      "PowerShell(cd C:\\\\Users\\\\user\\\\ai-marketplace\\\\frontend; @\\('@web3auth/base','@web3auth/no-modal','@web3auth/ethereum-provider'\\) | ForEach-Object { \"{0}: {1}\" -f $_, \\(Test-Path \"node_modules/$_\"\\) })"
+      "PowerShell(cd C:\\\\Users\\\\user\\\\ai-marketplace\\\\frontend; @\\('@web3auth/base','@web3auth/no-modal','@web3auth/ethereum-provider'\\) | ForEach-Object { \"{0}: {1}\" -f $_, \\(Test-Path \"node_modules/$_\"\\) })",
+      "PowerShell(Remove-Item *)"
     ]
   }
 }

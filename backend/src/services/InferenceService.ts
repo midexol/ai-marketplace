@@ -69,7 +69,12 @@ export class InferenceService {
 
       return { content, tokens, model: this.veniceModel };
     } catch (error) {
-      logger.error('Venice API call failed, falling back to mock:', error);
+      // Log a safe summary only — axios errors carry circular req/res refs.
+      const detail =
+        (error as { response?: { status?: number; data?: unknown } })?.response?.status ??
+        (error as Error)?.message ??
+        'unknown error';
+      logger.warn(`Venice API call failed (${detail}); falling back to mock`);
       return this.callMockLLM(request);
     }
   }

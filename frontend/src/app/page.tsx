@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/providers/WalletProvider';
+import { hasOnboarded } from '@/lib/onboarding';
 import {
   Rocket,
   Globe,
@@ -45,15 +46,19 @@ const STATS = [
 
 export default function Home() {
   const router = useRouter();
-  const { authenticated, ready, login } = useAuth();
+  const { authenticated, ready, user, login } = useAuth();
 
   useEffect(() => {
     if (ready && authenticated) {
-      router.push('/onboarding');
+      // Returning (onboarded) users skip the wizard; new users see it once.
+      const dest = hasOnboarded(user?.address) ? '/marketplace' : '/onboarding';
+      router.replace(dest);
     }
-  }, [authenticated, ready, router]);
+  }, [authenticated, ready, user?.address, router]);
 
-  if (!ready) {
+  // While loading, or while an authenticated user is being redirected into the
+  // app, show a loader instead of flashing the marketing landing page.
+  if (!ready || authenticated) {
     return (
       <main className="flex min-h-[80vh] items-center justify-center">
         <Loader2 className="animate-spin text-cyan-400" size={40} />

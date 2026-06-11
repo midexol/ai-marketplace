@@ -6,7 +6,7 @@ import { useTrades, useMarketPrice } from '@/hooks/useMarketplace';
 import { useAppStore } from '@/store/useAppStore';
 import { PriceChart } from '@/components/PriceChart';
 import { TradeForm, TradeFormData } from '@/components/TradeForm';
-import { DelegationPanel } from '@/components/DelegationPanel';
+import { RelayPanel } from '@/components/RelayPanel';
 import { RunAgentPanel } from '@/components/RunAgentPanel';
 import { Spinner } from '@/components/PageHeader';
 import {
@@ -230,8 +230,8 @@ export default function AgentDetailPage({ params }: PageProps) {
             </div>
           )}
 
-          {/* ERC-7710 delegation — grant this agent a USDC spend allowance */}
-          <DelegationPanel agentName={agent.name} delegateAddress={agent.creatorAddress} />
+          {/* Gasless USDC transfer via the 1Shot relayer (EIP-7710 + 7702) */}
+          <RelayPanel recipient={agent.creatorAddress} recipientLabel={agent.name} />
 
           <div className="card p-6">
             <h3 className="mb-4 font-semibold text-white">Quick Stats</h3>

@@ -1,6 +1,22 @@
 import winston from 'winston';
 import { env } from '@/config/env';
 
+/** JSON.stringify that won't throw on circular structures (e.g. axios errors). */
+function safeStringify(value: unknown): string {
+  const seen = new WeakSet();
+  try {
+    return JSON.stringify(value, (_key, val) => {
+      if (typeof val === 'object' && val !== null) {
+        if (seen.has(val)) return '[Circular]';
+        seen.add(val);
+      }
+      return val;
+    });
+  } catch {
+    return '[Unserializable]';
+  }
+}
+
 export const logger = winston.createLogger({
   level: env.LOG_LEVEL,
   format: winston.format.combine(
@@ -15,7 +31,7 @@ export const logger = winston.createLogger({
         winston.format.colorize(),
         winston.format.printf(({ timestamp, level, message, ...rest }) => {
           return `${timestamp} [${level}]: ${message} ${
-            Object.keys(rest).length > 1 ? JSON.stringify(rest) : ''
+            Object.keys(rest).length > 1 ? safeStringify(rest) : ''
           }`;
         })
       ),

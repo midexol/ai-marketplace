@@ -6,7 +6,8 @@
       "Bash(Select-Object Name, FullName)",
       "PowerShell(cd C:\\\\Users\\\\user\\\\ai-marketplace\\\\frontend; @\\('@web3auth/base','@web3auth/no-modal','@web3auth/ethereum-provider'\\) | ForEach-Object { \"{0}: {1}\" -f $_, \\(Test-Path \"node_modules/$_\"\\) })",
       "PowerShell(Remove-Item *)",
-      "PowerShell(cd C:\\\\Users\\\\user\\\\ai-marketplace\\\\frontend; Write-Host \"=== viem present? ===\"; Test-Path node_modules/viem; Write-Host \"=== viem version ===\"; \\(Get-Content node_modules/viem/package.json | ConvertFrom-Json\\).version; Write-Host \"=== toolkit main exports ===\"; $pkg = Get-Content node_modules/@metamask/delegation-toolkit/package.json | ConvertFrom-Json; $pkg.exports.PSObject.Properties.Name; Write-Host \"=== toolkit types ===\"; Get-ChildItem node_modules/@metamask/delegation-toolkit/dist/types -ErrorAction SilentlyContinue | Select-Object -First 20 -ExpandProperty Name)"
+      "PowerShell(cd C:\\\\Users\\\\user\\\\ai-marketplace\\\\frontend; Write-Host \"=== viem present? ===\"; Test-Path node_modules/viem; Write-Host \"=== viem version ===\"; \\(Get-Content node_modules/viem/package.json | ConvertFrom-Json\\).version; Write-Host \"=== toolkit main exports ===\"; $pkg = Get-Content node_modules/@metamask/delegation-toolkit/package.json | ConvertFrom-Json; $pkg.exports.PSObject.Properties.Name; Write-Host \"=== toolkit types ===\"; Get-ChildItem node_modules/@metamask/delegation-toolkit/dist/types -ErrorAction SilentlyContinue | Select-Object -First 20 -ExpandProperty Name)",
+      "WebFetch(domain:docs.1shotapi.com)"
     ]
   }
 }

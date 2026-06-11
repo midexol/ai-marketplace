@@ -25,7 +25,7 @@ export function PageHeader({ eyebrow, title, subtitle, action }: PageHeaderProps
 export function Spinner() {
   return (
     <div className="flex min-h-[60vh] items-center justify-center">
-      <div className="h-10 w-10 animate-spin rounded-full border-2 border-white/10 border-t-cyan-400" />
+      <div className="h-10 w-10 animate-spin rounded-full border-2 border-[#2a2a2a] border-t-cyan-400" />
     </div>
   );
 }

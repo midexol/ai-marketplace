@@ -7,21 +7,25 @@ import { useAuth } from '@/providers/WalletProvider';
 import { LogIn, LogOut, Menu, Network } from 'lucide-react';
 import { shortenAddress } from '@/utils/formatters';
 import { apiClient } from '@/services/api';
+import { useAppStore } from '@/store/useAppStore';
 
 export function Header() {
   const pathname = usePathname();
   const { user, login, logout, authenticated, getToken } = useAuth();
+  const setUserAddress = useAppStore((state) => state.setUserAddress);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  // Set auth token when user authenticates
+  // Sync auth state -> API token + global store so every page sees the wallet.
   useEffect(() => {
     const token = getToken();
-    if (authenticated && token) {
+    if (authenticated && token && user?.address) {
       apiClient.setAuthToken(token);
+      setUserAddress(user.address);
     } else {
       apiClient.clearAuthToken();
+      setUserAddress(null);
     }
-  }, [authenticated, getToken]);
+  }, [authenticated, getToken, user?.address, setUserAddress]);
 
   const isActive = (path: string) => pathname === path;
 
@@ -35,7 +39,7 @@ export function Header() {
   const walletAddress = user?.address || '';
 
   return (
-    <header className="sticky top-0 z-50 border-b border-white/10 bg-[#060a14]/70 backdrop-blur-xl">
+    <header className="sticky top-0 z-50 border-b border-[#2a2a2a] bg-[#0a0a0a]">
       <div className="container mx-auto px-4 py-3.5">
         <div className="flex items-center justify-between gap-8">
           {/* Logo */}
@@ -58,8 +62,8 @@ export function Header() {
                   href={item.href}
                   className={`rounded-lg px-3.5 py-2 text-sm font-medium transition ${
                     isActive(item.href)
-                      ? 'bg-white/[0.06] text-cyan-300'
-                      : 'text-slate-400 hover:bg-white/[0.04] hover:text-white'
+                      ? 'bg-[#232323] text-cyan-300'
+                      : 'text-slate-400 hover:bg-[#1e1e1e] hover:text-white'
                   }`}
                 >
                   {item.label}

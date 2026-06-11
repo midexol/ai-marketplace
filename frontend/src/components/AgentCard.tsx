@@ -67,7 +67,7 @@ export function AgentCard({
         </p>
 
         {/* Stats */}
-        <div className="mb-5 grid grid-cols-3 gap-3 border-y border-white/10 py-4">
+        <div className="mb-5 grid grid-cols-3 gap-3 border-y border-[#2a2a2a] py-4">
           <div>
             <p className="text-[11px] uppercase tracking-wide text-slate-500">Price</p>
             <p className="mt-0.5 text-sm font-semibold text-white">{formatPrice(price)}</p>

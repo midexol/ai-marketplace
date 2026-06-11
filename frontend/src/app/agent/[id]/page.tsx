@@ -104,7 +104,7 @@ export default function AgentDetailPage({ params }: PageProps) {
                   className={`rounded-lg px-4 py-2 font-medium capitalize transition ${
                     selectedChain === chain
                       ? 'bg-cyan-600 text-white'
-                      : 'border border-white/10 bg-white/[0.03] text-slate-300 hover:border-white/20'
+                      : 'border border-[#2a2a2a] bg-[#1e1e1e] text-slate-300 hover:border-[#3a3a3a]'
                   }`}
                 >
                   {chain}
@@ -206,7 +206,7 @@ export default function AgentDetailPage({ params }: PageProps) {
             )
           ) : (
             <div className="card p-6 text-center">
-              <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl border border-white/10 bg-white/[0.03]">
+              <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl border border-[#2a2a2a] bg-[#1e1e1e]">
                 <Wallet className="h-6 w-6 text-slate-500" />
               </div>
               <p className="text-slate-400">Connect your wallet to trade</p>
@@ -233,7 +233,7 @@ export default function AgentDetailPage({ params }: PageProps) {
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-white/10 text-xs uppercase text-slate-500">
+                <tr className="border-b border-[#2a2a2a] text-xs uppercase text-slate-500">
                   <th className="px-4 py-3 text-left">Type</th>
                   <th className="px-4 py-3 text-right">Amount</th>
                   <th className="px-4 py-3 text-right">Price</th>
@@ -241,9 +241,9 @@ export default function AgentDetailPage({ params }: PageProps) {
                   <th className="px-4 py-3 text-right">Time</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/[0.06]">
+              <tbody className="divide-y divide-[#2a2a2a]">
                 {tradeHistory.slice(0, 10).map((trade: Trade) => (
-                  <tr key={trade.id} className="transition hover:bg-white/[0.03]">
+                  <tr key={trade.id} className="transition hover:bg-[#1e1e1e]">
                     <td className="px-4 py-3">
                       <span
                         className={`inline-block rounded px-2 py-1 text-xs font-semibold ${

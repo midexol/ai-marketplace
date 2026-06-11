@@ -114,7 +114,7 @@ function ConnectPrompt({
 }) {
   return (
     <div className="card flex flex-col items-center justify-center px-6 py-20 text-center">
-      <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.03]">
+      <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border border-[#2a2a2a] bg-[#1e1e1e]">
         {icon}
       </div>
       <p className="max-w-sm text-slate-400">{text}</p>

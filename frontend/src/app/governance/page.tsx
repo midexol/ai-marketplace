@@ -82,7 +82,7 @@ export default function GovernancePage() {
                 </div>
                 <span
                   className={`shrink-0 rounded-full px-3 py-1 text-xs font-medium capitalize ring-1 ${
-                    statusStyles[proposal.status] || 'bg-white/[0.06] text-slate-300 ring-white/10'
+                    statusStyles[proposal.status] || 'bg-[#232323] text-slate-300 ring-[#2a2a2a]'
                   }`}
                 >
                   {proposal.status}
@@ -95,7 +95,7 @@ export default function GovernancePage() {
                 <VoteBar label="Abstain" value={formatNumber(proposal.abstainVotes)} pct={10} color="bg-slate-500" textColor="text-slate-400" />
               </div>
 
-              <div className="mt-5 flex items-center justify-between border-t border-white/10 pt-4 text-sm text-slate-400">
+              <div className="mt-5 flex items-center justify-between border-t border-[#2a2a2a] pt-4 text-sm text-slate-400">
                 <span>Proposed by {shortenAddress(proposal.proposer)}</span>
                 {userAddress && (
                   <button className="btn-primary px-4 py-2 text-sm">
@@ -108,7 +108,7 @@ export default function GovernancePage() {
         </div>
       ) : (
         <div className="card flex flex-col items-center justify-center px-6 py-20 text-center">
-          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.03]">
+          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border border-[#2a2a2a] bg-[#1e1e1e]">
             <FileText className="h-8 w-8 text-slate-500" />
           </div>
           <p className="max-w-sm text-slate-400">No active proposals right now.</p>
@@ -139,7 +139,7 @@ function VoteBar({
         </span>
         <span className="text-slate-500">{pct}%</span>
       </div>
-      <div className="h-2 w-full overflow-hidden rounded-full bg-white/[0.06]">
+      <div className="h-2 w-full overflow-hidden rounded-full bg-[#232323]">
         <div className={`h-2 rounded-full ${color}`} style={{ width: `${pct}%` }} />
       </div>
     </div>

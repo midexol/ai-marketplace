@@ -4,8 +4,10 @@
 
 :root {
   --bg: #0a0a0a;
-  --surface: 38 38 38; /* neutral-800 rgb */
-  --border: 163 163 163; /* neutral-400 rgb, used at low alpha */
+  --surface: #161616; /* solid card surface */
+  --surface-2: #1e1e1e; /* solid hover/raised surface */
+  --border: #2a2a2a; /* solid hairline border */
+  --border-strong: #3a3a3a;
   --text: #fafafa;
   --text-muted: #a3a3a3;
 }
@@ -55,18 +57,18 @@ body {
 }
 
 @layer components {
-  /* Neutral card: subtle surface, hairline border */
+  /* Solid card — opaque surface, hairline border (no glass/blur) */
   .card {
-    @apply relative rounded-xl border;
-    background-color: rgb(var(--surface) / 0.35);
-    border-color: rgb(var(--border) / 0.14);
+    @apply relative rounded-xl;
+    background-color: var(--surface);
+    border: 1px solid var(--border);
   }
   .card-hover {
     @apply transition-colors duration-200;
   }
   .card-hover:hover {
-    border-color: rgb(var(--border) / 0.28);
-    background-color: rgb(var(--surface) / 0.55);
+    border-color: var(--border-strong);
+    background-color: var(--surface-2);
   }
 
   /* Primary: white surface, near-black text (monochrome, Vercel-style) */
@@ -90,18 +92,19 @@ body {
   .btn-ghost {
     @apply inline-flex items-center justify-center gap-2 rounded-lg px-5 py-2.5 text-sm font-medium transition-colors duration-150;
     color: var(--text);
-    border: 1px solid rgb(var(--border) / 0.2);
-    background-color: rgb(var(--border) / 0.04);
+    border: 1px solid var(--border);
+    background-color: var(--surface);
   }
   .btn-ghost:hover {
-    background-color: rgb(var(--border) / 0.1);
+    background-color: var(--surface-2);
+    border-color: var(--border-strong);
   }
 
   .chip {
     @apply inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium;
     color: var(--text-muted);
-    border: 1px solid rgb(var(--border) / 0.16);
-    background-color: rgb(var(--border) / 0.05);
+    border: 1px solid var(--border);
+    background-color: var(--surface);
   }
 
   /* Plain white headings/accents — no gradient, no color */
@@ -116,8 +119,8 @@ body {
     @apply inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold uppercase;
     letter-spacing: 0.1em;
     color: var(--text-muted);
-    border: 1px solid rgb(var(--border) / 0.18);
-    background-color: rgb(var(--border) / 0.05);
+    border: 1px solid var(--border);
+    background-color: var(--surface);
   }
 }
 

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/providers/WalletProvider';
 import { apiClient } from '@/services/api';
+import { hasOnboarded, setOnboarded } from '@/lib/onboarding';
 import {
   TrendingUp,
   Rocket,
@@ -41,8 +42,12 @@ export default function OnboardingPage() {
   const [chains, setChains] = useState<string[]>(['ethereum']);
 
   useEffect(() => {
-    if (!privyLoading && !user?.address) {
-      router.push('/');
+    if (privyLoading) return;
+    if (!user?.address) {
+      router.replace('/');
+    } else if (hasOnboarded(user.address)) {
+      // Already onboarded — don't make them repeat the wizard.
+      router.replace('/marketplace');
     }
   }, [user, privyLoading, router]);
 
@@ -70,15 +75,15 @@ export default function OnboardingPage() {
 
   const handleComplete = async () => {
     setIsLoading(true);
+    // Saving preferences is best-effort — never trap the user if the API is down.
     try {
       await apiClient.saveUserPreferences(walletAddress, interests, chains);
-
-      setStep('done');
-      setTimeout(() => router.push('/marketplace'), 2000);
     } catch (err) {
-      console.error('Failed to save preferences:', err);
-      alert('Failed to save preferences. Try again.');
+      console.error('Failed to save preferences (continuing):', err);
     } finally {
+      setOnboarded(walletAddress);
+      setStep('done');
+      setTimeout(() => router.replace('/marketplace'), 1500);
       setIsLoading(false);
     }
   };

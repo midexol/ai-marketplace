@@ -11,7 +11,14 @@ import {
   Area,
   AreaChart,
 } from 'recharts';
-import { formatPrice } from '@/utils/formatters';
+// Chart data is in human-readable decimal prices (e.g. 0.38), NOT wei — so we
+// format with a plain decimal formatter. (formatPrice expects wei integers and
+// would throw `BigInt(0.75)` on these values.)
+function formatChartPrice(value: number | string): string {
+  const n = typeof value === 'string' ? parseFloat(value) : value;
+  if (!Number.isFinite(n)) return '$0.00';
+  return `$${n.toFixed(n < 1 ? 4 : 2)}`;
+}
 
 interface ChartDataPoint {
   timestamp: number | string;
@@ -42,7 +49,7 @@ const CustomTooltip = ({ active, payload }: any) => {
     <div className="bg-slate-900 border border-slate-700 rounded-lg p-3">
       <p className="text-xs text-slate-400">{timestamp}</p>
       <p className="text-sm font-semibold text-cyan-400">
-        {formatPrice(data.price)}
+        {formatChartPrice(data.price)}
       </p>
       {data.volume && (
         <p className="text-xs text-slate-400">Vol: {data.volume}</p>
@@ -135,7 +142,7 @@ export function PriceChart({
               stroke="#94a3b8"
               style={{ fontSize: '12px' }}
               tickFormatter={(value: number) =>
-                tooltipFormatter ? tooltipFormatter(value) : formatPrice(value)
+                tooltipFormatter ? tooltipFormatter(value) : formatChartPrice(value)
               }
             />
             <Tooltip content={<CustomTooltip />} />
@@ -168,7 +175,7 @@ export function PriceChart({
             stroke="#94a3b8"
             style={{ fontSize: '12px' }}
             tickFormatter={(value: number) =>
-              tooltipFormatter ? tooltipFormatter(value) : formatPrice(value)
+              tooltipFormatter ? tooltipFormatter(value) : formatChartPrice(value)
             }
           />
           <Tooltip content={<CustomTooltip />} />

@@ -32,7 +32,7 @@ export const AppDataSource = new DataSource({
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   driver: require('@libsql/sqlite3'),
   database,
-  synchronize: env.NODE_ENV === 'development',
+  synchronize: env.DB_SYNCHRONIZE,
   logging: env.NODE_ENV === 'development',
   entities: [Agent, AgentToken, Trade, Portfolio, User],
 });

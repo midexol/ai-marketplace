@@ -11,6 +11,12 @@ const envSchema = z.object({
   // Database - Turso (libSQL / SQLite). Falls back to a local file for dev.
   DATABASE_URL: z.string().default('./synapse.db'),
   DATABASE_AUTH_TOKEN: z.string().optional(),
+  // Auto-create/update schema from entities. Needed on first prod deploy to a
+  // fresh Turso DB. Set to "false" once the schema is stable to avoid surprises.
+  DB_SYNCHRONIZE: z
+    .string()
+    .default('true')
+    .transform((v) => v !== 'false'),
 
   // Blockchain - Single Alchemy API key for all chains (optional for local demo)
   ALCHEMY_API_KEY: z.string().default('demo'),

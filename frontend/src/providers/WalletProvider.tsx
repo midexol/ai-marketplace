@@ -9,29 +9,36 @@ import {
   ReactNode,
 } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { createSmartAccount, type SmartAccount } from '@/lib/smartAccount';
 
 /**
- * MetaMask Embedded Wallets (Web3Auth) integration.
+ * Wallet layer: Web3Auth embedded wallet (email login) → MetaMask Smart Account.
  *
- * Exposes a provider-agnostic auth surface via `useAuth()` so the rest of the
- * app never imports the SDK directly. Swapping wallet providers later only
- * touches this file.
+ * Web3Auth produces an EOA private key; we wrap it in a MetaMask Hybrid smart
+ * account (Delegation Toolkit) on Base Sepolia. ERC-7710 delegations and the
+ * 1Shot relayer build on `smartAccount`.
  *
- * Requires NEXT_PUBLIC_WEB3AUTH_CLIENT_ID (https://dashboard.web3auth.io).
- * Without it, the app still renders — auth simply stays unavailable.
+ * Exposes a provider-agnostic surface via `useAuth()` so pages never import the
+ * SDK directly. Requires NEXT_PUBLIC_WEB3AUTH_CLIENT_ID; without it the app
+ * still renders and auth stays inactive.
  */
 
 export interface AuthUser {
   id: string;
   email?: string;
   name?: string;
+  /** EOA (signer/owner) address from the embedded wallet. */
   address: string;
+  /** MetaMask Smart Account address (the on-chain actor). */
+  smartAccountAddress?: string;
 }
 
 interface AuthContextValue {
   ready: boolean;
   authenticated: boolean;
   user: AuthUser | null;
+  /** MetaMask Smart Account — use for user ops, delegations, relayed txns. */
+  smartAccount: SmartAccount | null;
   login: () => Promise<void>;
   logout: () => Promise<void>;
   /** Base64 token sent to the backend as a Bearer credential. */
@@ -58,6 +65,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   const [web3auth, setWeb3auth] = useState<any>(null);
   const [ready, setReady] = useState(false);
   const [user, setUser] = useState<AuthUser | null>(null);
+  const [smartAccount, setSmartAccount] = useState<SmartAccount | null>(null);
 
   // Initialize the SDK on mount (client-side only).
   useEffect(() => {
@@ -136,12 +144,24 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       const address = accounts?.[0] ?? '';
       if (!address) return;
 
-      setUser({
+      const baseUser: AuthUser = {
         id: info?.verifierId || info?.email || address,
         email: info?.email,
         name: info?.name,
         address,
-      });
+      };
+      setUser(baseUser);
+
+      // Wrap the embedded-wallet key in a MetaMask Smart Account.
+      try {
+        const privateKey: string = await provider.request({ method: 'eth_private_key' });
+        const sa = await createSmartAccount(privateKey);
+        setSmartAccount(sa);
+        setUser({ ...baseUser, smartAccountAddress: sa.address });
+      } catch (saErr) {
+        // Non-fatal: keep the EOA session even if the smart account fails.
+        console.error('Smart account init failed:', saErr);
+      }
     } catch (err) {
       console.error('Failed to read wallet user:', err);
     }
@@ -161,6 +181,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       await web3auth.logout();
     }
     setUser(null);
+    setSmartAccount(null);
   }, [web3auth]);
 
   const getToken = useCallback(() => (user ? encodeToken(user) : null), [user]);
@@ -169,6 +190,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     ready,
     authenticated: !!user,
     user,
+    smartAccount,
     login,
     logout,
     getToken,

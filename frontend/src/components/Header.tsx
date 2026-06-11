@@ -36,7 +36,9 @@ export function Header() {
     { label: 'Governance', href: '/governance' },
   ];
 
-  const walletAddress = user?.address || '';
+  // Prefer the smart account address (the on-chain actor) when available.
+  const walletAddress = user?.smartAccountAddress || user?.address || '';
+  const isSmartAccount = !!user?.smartAccountAddress;
 
   return (
     <header className="sticky top-0 z-50 border-b border-[#493113] bg-[#130f08]">
@@ -76,8 +78,9 @@ export function Header() {
           <div className="flex items-center gap-3">
             {authenticated && walletAddress ? (
               <div className="hidden items-center gap-3 sm:flex">
-                <div className="chip font-mono">
+                <div className="chip font-mono" title={isSmartAccount ? 'MetaMask Smart Account' : 'Embedded wallet'}>
                   <span className="h-2 w-2 rounded-full bg-green-400 shadow-[0_0_8px_rgba(74,222,128,0.8)]" />
+                  {isSmartAccount && <span className="text-clay-400">SA</span>}
                   {shortenAddress(walletAddress, 4)}
                 </div>
                 <button onClick={() => logout()} className="btn-ghost px-4 py-2 text-sm">

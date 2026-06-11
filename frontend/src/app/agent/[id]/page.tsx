@@ -6,6 +6,8 @@ import { useTrades, useMarketPrice } from '@/hooks/useMarketplace';
 import { useAppStore } from '@/store/useAppStore';
 import { PriceChart } from '@/components/PriceChart';
 import { TradeForm, TradeFormData } from '@/components/TradeForm';
+import { DelegationPanel } from '@/components/DelegationPanel';
+import { RunAgentPanel } from '@/components/RunAgentPanel';
 import { Spinner } from '@/components/PageHeader';
 import {
   formatPrice,
@@ -101,6 +103,9 @@ export default function AgentDetailPage({ params }: PageProps) {
       <div className="mb-8 grid grid-cols-1 gap-8 lg:grid-cols-3">
         {/* Left */}
         <div className="space-y-6 lg:col-span-2">
+          {/* Run the agent — Venice AI in the main flow */}
+          <RunAgentPanel agentId={agent.id} agentName={agent.name} agentType={agent.type} />
+
           {/* Chain selector */}
           <div>
             <label className="mb-2 block text-sm font-medium text-slate-300">Blockchain</label>
@@ -224,6 +229,9 @@ export default function AgentDetailPage({ params }: PageProps) {
               <p className="text-slate-400">Connect your wallet to trade</p>
             </div>
           )}
+
+          {/* ERC-7710 delegation — grant this agent a USDC spend allowance */}
+          <DelegationPanel agentName={agent.name} delegateAddress={agent.creatorAddress} />
 
           <div className="card p-6">
             <h3 className="mb-4 font-semibold text-white">Quick Stats</h3>

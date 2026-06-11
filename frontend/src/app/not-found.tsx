@@ -5,7 +5,7 @@ export default function NotFound() {
   return (
     <main className="flex min-h-[70vh] items-center justify-center px-4">
       <div className="card w-full max-w-md p-8 text-center">
-        <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl border border-[#342d22] bg-[#201b13]">
+        <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl border border-[#493113] bg-[#23170a]">
           <Compass className="h-7 w-7 text-slate-400" />
         </div>
         <p className="text-sm font-semibold uppercase tracking-widest text-slate-500">404</p>

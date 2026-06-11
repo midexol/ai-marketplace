@@ -69,7 +69,7 @@ export default function CreateAgentPage() {
     return (
       <main className="mx-auto max-w-6xl px-4 py-12">
         <div className="card flex flex-col items-center justify-center px-6 py-20 text-center">
-          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border border-[#342d22] bg-[#201b13]">
+          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border border-[#493113] bg-[#23170a]">
             <Wallet className="h-8 w-8 text-slate-500" />
           </div>
           <p className="max-w-sm text-slate-400">Connect your wallet to create an agent.</p>
@@ -79,7 +79,7 @@ export default function CreateAgentPage() {
   }
 
   const inputClass =
-    'w-full rounded-xl border border-[#342d22] bg-[#201b13] px-4 py-2.5 text-white placeholder-slate-500 transition focus:border-cyan-400/50 focus:outline-none focus:ring-2 focus:ring-cyan-400/20';
+    'w-full rounded-xl border border-[#493113] bg-[#23170a] px-4 py-2.5 text-white placeholder-slate-500 transition focus:border-cyan-400/50 focus:outline-none focus:ring-2 focus:ring-cyan-400/20';
 
   return (
     <main className="mx-auto max-w-2xl px-4 py-12">
@@ -139,7 +139,7 @@ export default function CreateAgentPage() {
                   className={`rounded-xl border px-4 py-3 font-medium capitalize transition ${
                     active
                       ? 'border-cyan-500 bg-cyan-600 text-white'
-                      : 'border-[#342d22] bg-[#201b13] text-slate-300 hover:border-[#473e2f]'
+                      : 'border-[#493113] bg-[#23170a] text-slate-300 hover:border-[#76501d]'
                   }`}
                 >
                   {chain}

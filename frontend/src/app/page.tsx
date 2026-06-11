@@ -65,8 +65,8 @@ export default function Home() {
     <main className="relative mx-auto max-w-6xl px-4 pb-24 pt-16 md:pt-24">
       {/* Hero */}
       <section className="animate-fade-up text-center">
-        <div className="mx-auto mb-8 flex h-16 w-16 items-center justify-center rounded-2xl bg-white">
-          <Network className="h-8 w-8 text-[#16120b]" strokeWidth={2} />
+        <div className="mx-auto mb-8 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-[#fff0a8] via-[#ffd166] to-[#ff9f1c] shadow-[0_22px_48px_-24px_rgba(255,190,76,0.95)]">
+          <Network className="h-8 w-8 text-[#211100]" strokeWidth={2} />
         </div>
 
         <div className="mb-6 flex justify-center">
@@ -144,7 +144,7 @@ export default function Home() {
       {/* CTA */}
       <section className="mt-28">
         <div className="card relative overflow-hidden p-10 text-center md:p-16">
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-cyan-500/10 via-transparent to-blue-600/10" />
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-[#ffb640]/15 via-transparent to-[#ffd166]/10" />
           <div className="relative">
             <h2 className="text-3xl font-bold text-white md:text-4xl">
               Ready to join the agent economy?

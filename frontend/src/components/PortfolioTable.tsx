@@ -160,7 +160,7 @@ export function PortfolioTable({
                           className="w-8 h-8 rounded-lg object-cover"
                         />
                       ) : (
-                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-white text-xs font-bold">
+                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#ffb640] via-[#ffd166] to-[#f59e1b] flex items-center justify-center text-[#211100] text-xs font-bold shadow-[0_12px_24px_-18px_rgba(255,190,76,0.9)]">
                           {holding.agent?.name[0] || 'A'}
                         </div>
                       )}
@@ -238,7 +238,7 @@ export function PortfolioTable({
                       className="w-10 h-10 rounded-lg object-cover"
                     />
                   ) : (
-                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-white text-sm font-bold">
+                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#ffb640] via-[#ffd166] to-[#f59e1b] flex items-center justify-center text-[#211100] text-sm font-bold shadow-[0_12px_24px_-18px_rgba(255,190,76,0.9)]">
                       {holding.agent?.name[0] || 'A'}
                     </div>
                   )}

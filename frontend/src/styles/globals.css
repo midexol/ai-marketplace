@@ -3,20 +3,21 @@
 @tailwind utilities;
 
 :root {
-  --bg: #16120b;
-  --bg-2: #1b1710;
-  --surface: #201b13;   /* solid card */
-  --surface-2: #29231a; /* raised / hover */
-  --border: #342d22;
-  --border-strong: #473e2f;
-  --text: #efe8da;
-  --text-muted: #a39a88;
-  --text-faint: #6f6657;
-  --accent: #c96a4d;       /* clay / terracotta */
-  --accent-hover: #d98064;
-  --accent-ink: #1a0f09;   /* dark text on accent */
-  --gain: #6fae6a;
-  --loss: #d2664f;
+  --bg: #130f08;
+  --bg-2: #1b1308;
+  --surface: #23170a;
+  --surface-2: #30200c;
+  --border: #493113;
+  --border-strong: #76501d;
+  --text: #fff5df;
+  --text-muted: #e1c99a;
+  --text-faint: #9e7c42;
+  --accent: #ffb640;
+  --accent-hover: #ffd166;
+  --accent-deep: #d77a12;
+  --accent-ink: #211100;
+  --gain: #7edc8b;
+  --loss: #ff7a5c;
 }
 
 * {
@@ -58,8 +59,11 @@ h1, h2, h3 {
   min-height: 100vh;
   background-color: var(--bg);
   background-image:
-    radial-gradient(60rem 40rem at 75% -10%, rgba(201, 106, 77, 0.08), transparent 60%),
-    radial-gradient(50rem 40rem at 0% 0%, rgba(120, 96, 60, 0.06), transparent 55%);
+    radial-gradient(70rem 44rem at 80% -12%, rgba(255, 209, 102, 0.2), transparent 60%),
+    radial-gradient(48rem 34rem at 3% 5%, rgba(255, 149, 36, 0.15), transparent 58%),
+    linear-gradient(120deg, rgba(255, 182, 64, 0.08), transparent 34%, rgba(255, 213, 116, 0.1) 67%, transparent);
+  background-size: 120% 120%, 110% 110%, 220% 220%;
+  animation: caramel-flow 18s ease-in-out infinite alternate;
 }
 
 .app-bg::after {
@@ -90,12 +94,12 @@ h1, h2, h3 {
   border: 3px solid var(--bg);
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #5c5141;
+  background: #8e6226;
 }
 
 ::selection {
-  background: rgba(201, 106, 77, 0.32);
-  color: #fff;
+  background: rgba(255, 190, 76, 0.38);
+  color: var(--text);
 }
 
 @layer components {
@@ -104,24 +108,36 @@ h1, h2, h3 {
     @apply relative rounded-lg;
     background-color: var(--surface);
     border: 1px solid var(--border);
-    box-shadow: 0 1px 0 0 rgba(255, 250, 240, 0.02) inset, 0 8px 24px -16px rgba(0, 0, 0, 0.7);
+    box-shadow:
+      0 1px 0 0 rgba(255, 238, 186, 0.08) inset,
+      0 18px 44px -24px rgba(0, 0, 0, 0.95),
+      0 18px 34px -32px rgba(255, 190, 76, 0.72);
   }
   .card-hover {
-    @apply transition-colors duration-200;
+    @apply transition duration-200;
   }
   .card-hover:hover {
+    transform: translateY(-3px);
     border-color: var(--border-strong);
     background-color: var(--surface-2);
+    box-shadow:
+      0 1px 0 0 rgba(255, 238, 186, 0.12) inset,
+      0 24px 58px -28px rgba(0, 0, 0, 0.95),
+      0 24px 42px -34px rgba(255, 209, 102, 0.9);
   }
 
   /* Primary: clay surface, dark ink — the one place color is loud */
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded-md px-5 py-2.5 text-sm font-semibold transition-colors duration-150;
-    background-color: var(--accent);
+    @apply inline-flex items-center justify-center gap-2 rounded-md px-5 py-2.5 text-sm font-semibold transition duration-150;
+    background-image: linear-gradient(105deg, #ff9f1c 0%, #ffd166 45%, #fff0a8 55%, #f39a1f 100%);
+    background-size: 220% 220%;
     color: var(--accent-ink);
+    box-shadow: 0 10px 26px -16px rgba(255, 184, 55, 0.95), 0 1px 0 rgba(255, 255, 255, 0.42) inset;
+    animation: caramel-sheen 5s ease-in-out infinite;
   }
   .btn-primary:hover {
-    background-color: var(--accent-hover);
+    background-position: 100% 50%;
+    box-shadow: 0 14px 32px -16px rgba(255, 202, 78, 1), 0 1px 0 rgba(255, 255, 255, 0.55) inset;
   }
   .btn-primary:active {
     transform: translateY(0.5px);
@@ -140,7 +156,7 @@ h1, h2, h3 {
   }
   .btn-ghost:hover {
     background-color: var(--surface-2);
-    border-color: #5c5141;
+    border-color: #8e6226;
   }
 
   .chip {
@@ -153,15 +169,22 @@ h1, h2, h3 {
   /* Wordmark / hero accent — serif, warm clay wash */
   .text-gradient {
     font-family: var(--font-display);
-    background-image: linear-gradient(105deg, var(--text) 0%, var(--accent-hover) 140%);
+    background-image: linear-gradient(100deg, #fff7df 0%, #ffd166 38%, #ff9f1c 74%, #fff0a8 100%);
+    background-size: 180% 180%;
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
+    animation: caramel-sheen 7s ease-in-out infinite;
   }
   .text-gradient-accent {
-    color: var(--accent-hover);
+    background-image: linear-gradient(95deg, #ff9f1c, #ffd166 45%, #fff0a8 65%, #f39a1f);
+    background-size: 180% 180%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
     font-family: var(--font-mono);
     font-feature-settings: 'tnum';
+    animation: caramel-sheen 6s ease-in-out infinite;
   }
 
   /* Editorial kicker — uppercase, clay, hairline rule feel */
@@ -170,7 +193,7 @@ h1, h2, h3 {
     letter-spacing: 0.18em;
     color: var(--accent-hover);
     border: 1px solid var(--border-strong);
-    background-color: var(--bg-2);
+    background: linear-gradient(120deg, rgba(255, 182, 64, 0.16), rgba(255, 209, 102, 0.08), rgba(255, 159, 28, 0.14));
   }
 }
 
@@ -183,4 +206,14 @@ h1, h2, h3 {
 @keyframes fade-up {
   from { opacity: 0; transform: translateY(16px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes caramel-flow {
+  from { background-position: 0% 0%, 100% 0%, 0% 50%; }
+  to { background-position: 100% 18%, 0% 28%, 100% 50%; }
+}
+
+@keyframes caramel-sheen {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
 }

@@ -6,16 +6,16 @@ import type { Config } from 'tailwindcss';
  * stone ramp so the UI is cohesively warm-neutral; the clay accent is applied
  * deliberately via CSS component classes (.btn-primary, .eyebrow) — never sprayed.
  */
-const STONE = {
-  100: '#f6f2ea',
-  200: '#e8e1d3',
-  300: '#cdc5b4',
-  400: '#a39a88',
-  500: '#7a7160',
-  600: '#564e41',
-  700: '#3a352c',
-  800: '#252017',
-  900: '#1a160f',
+const CARAMEL = {
+  100: '#fff7df',
+  200: '#ffe8ad',
+  300: '#ffd166',
+  400: '#ffb640',
+  500: '#f59e1b',
+  600: '#c87510',
+  700: '#76501d',
+  800: '#30200c',
+  900: '#130f08',
 };
 
 const config: Config = {
@@ -27,15 +27,15 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        slate: STONE,
-        cyan: STONE,
-        blue: STONE,
-        indigo: STONE,
-        sky: STONE,
+        slate: CARAMEL,
+        cyan: CARAMEL,
+        blue: CARAMEL,
+        indigo: CARAMEL,
+        sky: CARAMEL,
         clay: {
-          400: '#d98064',
-          500: '#c96a4d',
-          600: '#b3573b',
+          400: '#ffb640',
+          500: '#f59e1b',
+          600: '#c87510',
         },
       },
       fontFamily: {

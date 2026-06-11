@@ -14,7 +14,7 @@ interface AgentCardProps {
 }
 
 // Uniform warm chip — category is conveyed by the label, not a clashing hue.
-const TYPE_CHIP = 'bg-[#29231a] text-slate-300 ring-[#473e2f]';
+const TYPE_CHIP = 'bg-[#30200c] text-slate-300 ring-[#76501d]';
 
 export function AgentCard({
   agent,
@@ -40,7 +40,7 @@ export function AgentCard({
               className="h-12 w-12 rounded-xl object-cover"
             />
           ) : (
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#29231a] font-display text-xl font-semibold text-clay-400 ring-1 ring-[#473e2f]">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#30200c] font-display text-xl font-semibold text-clay-400 ring-1 ring-[#76501d]">
               {agent.name[0]}
             </div>
           )}
@@ -62,7 +62,7 @@ export function AgentCard({
         </p>
 
         {/* Stats */}
-        <div className="mb-5 grid grid-cols-3 gap-3 border-y border-[#342d22] py-4">
+        <div className="mb-5 grid grid-cols-3 gap-3 border-y border-[#493113] py-4">
           <div>
             <p className="text-[11px] uppercase tracking-wide text-slate-500">Price</p>
             <p className="mt-0.5 text-sm font-semibold text-white">{formatPrice(price)}</p>

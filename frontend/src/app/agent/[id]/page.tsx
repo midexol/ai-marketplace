@@ -74,7 +74,7 @@ export default function AgentDetailPage({ params }: PageProps) {
         {agent.avatarUrl ? (
           <img src={agent.avatarUrl} alt={agent.name} className="h-24 w-24 rounded-2xl object-cover" />
         ) : (
-          <div className="flex h-24 w-24 items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-500 to-blue-600 text-4xl font-bold text-white">
+          <div className="flex h-24 w-24 items-center justify-center rounded-2xl bg-gradient-to-br from-[#ffb640] via-[#ffd166] to-[#f59e1b] text-4xl font-bold text-[#211100] shadow-[0_22px_48px_-24px_rgba(255,190,76,0.95)]">
             {agent.name[0]}
           </div>
         )}
@@ -105,7 +105,7 @@ export default function AgentDetailPage({ params }: PageProps) {
                   className={`rounded-lg px-4 py-2 font-medium capitalize transition ${
                     selectedChain === chain
                       ? 'bg-cyan-600 text-white'
-                      : 'border border-[#342d22] bg-[#201b13] text-slate-300 hover:border-[#473e2f]'
+                      : 'border border-[#493113] bg-[#23170a] text-slate-300 hover:border-[#76501d]'
                   }`}
                 >
                   {chain}
@@ -207,7 +207,7 @@ export default function AgentDetailPage({ params }: PageProps) {
             )
           ) : (
             <div className="card p-6 text-center">
-              <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl border border-[#342d22] bg-[#201b13]">
+              <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl border border-[#493113] bg-[#23170a]">
                 <Wallet className="h-6 w-6 text-slate-500" />
               </div>
               <p className="text-slate-400">Connect your wallet to trade</p>
@@ -237,7 +237,7 @@ export default function AgentDetailPage({ params }: PageProps) {
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-[#342d22] text-xs uppercase text-slate-500">
+                <tr className="border-b border-[#493113] text-xs uppercase text-slate-500">
                   <th className="px-4 py-3 text-left">Type</th>
                   <th className="px-4 py-3 text-right">Amount</th>
                   <th className="px-4 py-3 text-right">Price</th>
@@ -245,9 +245,9 @@ export default function AgentDetailPage({ params }: PageProps) {
                   <th className="px-4 py-3 text-right">Time</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#342d22]">
+              <tbody className="divide-y divide-[#493113]">
                 {tradeHistory.slice(0, 10).map((trade: Trade) => (
-                  <tr key={trade.id} className="transition hover:bg-[#201b13]">
+                  <tr key={trade.id} className="transition hover:bg-[#23170a]">
                     <td className="px-4 py-3">
                       <span
                         className={`inline-block rounded px-2 py-1 text-xs font-semibold ${

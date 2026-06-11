@@ -41,7 +41,7 @@ export function Header() {
   const isSmartAccount = !!user?.smartAccountAddress;
 
   return (
-    <header className="sticky top-0 z-50 border-b border-[#342d22] bg-[#16120b]">
+    <header className="sticky top-0 z-50 border-b border-[#493113] bg-[#130f08]">
       <div className="container mx-auto px-4 py-3.5">
         <div className="flex items-center justify-between gap-8">
           {/* Logo */}
@@ -49,8 +49,8 @@ export function Header() {
             href="/"
             className="flex items-center gap-2.5 text-xl font-bold text-white transition hover:opacity-90"
           >
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-cyan-500 to-blue-600">
-              <Network className="h-5 w-5 text-white" strokeWidth={2} />
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-[#ffb640] via-[#ffd166] to-[#f59e1b] shadow-[0_14px_30px_-18px_rgba(255,190,76,0.95)]">
+              <Network className="h-5 w-5 text-[#211100]" strokeWidth={2} />
             </div>
             <span className="hidden text-gradient sm:inline">Synapse</span>
           </Link>
@@ -64,8 +64,8 @@ export function Header() {
                   href={item.href}
                   className={`rounded-lg px-3.5 py-2 text-sm font-medium transition ${
                     isActive(item.href)
-                      ? 'bg-[#29231a] text-cyan-300'
-                      : 'text-slate-400 hover:bg-[#201b13] hover:text-white'
+                      ? 'bg-[#30200c] text-cyan-300'
+                      : 'text-slate-400 hover:bg-[#23170a] hover:text-white'
                   }`}
                 >
                   {item.label}

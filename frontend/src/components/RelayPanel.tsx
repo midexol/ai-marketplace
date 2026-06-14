@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useAuth } from '@/providers/WalletProvider';
 import { relayGaslessUsdcTransfer, getRelayStatus } from '@/lib/relayer';
 import { Fuel, Loader2, AlertCircle, CheckCircle2, ExternalLink } from 'lucide-react';
+import { getAddress } from 'viem';
 
 /**
  * Gas-abstracted transfer via the 1Shot permissionless relayer.
@@ -46,7 +47,7 @@ export function RelayPanel({
       const result = await relayGaslessUsdcTransfer({
         smartAccount,
         signerAccount: signerAccount as never,
-        to: recipient as `0x${string}`,
+        to: getAddress(recipient) as `0x${string}`,
         amount: atoms,
         onStatus: setStatus,
       });

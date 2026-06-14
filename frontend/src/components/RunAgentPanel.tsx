@@ -5,6 +5,7 @@ import { apiClient } from '@/services/api';
 import type { AgentType } from '@/types';
 import { Sparkles, Loader2, AlertCircle, Cpu } from 'lucide-react';
 import { useAuth } from '@/providers/WalletProvider';
+import { getAddress } from 'viem';
 
 /**
  * Runs the agent against the Venice API (via the backend InferenceService) and
@@ -54,7 +55,7 @@ export function RunAgentPanel({
     setStatusMessage('Preparing request payment…');
 
     try {
-      const toAddress = creatorAddress || '0x27288C84887ED7Aa6Ad47948Df0908E6ce4A0053';
+      const toAddress = getAddress(creatorAddress || '0x27288C84887ED7Aa6Ad47948Df0908E6ce4A0053');
       const nonce = '0x' + Array.from(crypto.getRandomValues(new Uint8Array(32)))
         .map((b) => b.toString(16).padStart(2, '0'))
         .join('');

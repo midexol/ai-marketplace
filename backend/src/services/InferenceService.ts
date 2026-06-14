@@ -12,17 +12,35 @@ interface LLMResponse {
 
 export class InferenceService {
   private veniceApiKey: string | undefined;
+  private geminiApiKey: string | undefined;
   private readonly veniceModel = 'llama-3.3-70b';
 
   constructor() {
     this.veniceApiKey = env.VENICE_API_KEY;
+    this.geminiApiKey = env.GEMINI_API_KEY;
   }
 
   async runInference(request: InferenceRequest): Promise<InferenceResponse> {
     try {
-      const response = this.veniceApiKey
-        ? await this.callVenice(request)
-        : await this.callMockLLM(request);
+      let response: LLMResponse;
+      if (this.geminiApiKey) {
+        try {
+          response = await this.callGemini(request);
+        } catch (error) {
+          const detail =
+            (error as { response?: { status?: number; data?: unknown } })?.response?.status ??
+            (error as Error)?.message ??
+            'unknown error';
+          logger.warn(`Gemini API call failed (${detail}); falling back to Venice/Mock`);
+          response = this.veniceApiKey
+            ? await this.callVenice(request)
+            : await this.callMockLLM(request);
+        }
+      } else if (this.veniceApiKey) {
+        response = await this.callVenice(request);
+      } else {
+        response = await this.callMockLLM(request);
+      }
 
       logger.info(`Inference completed for agent ${request.agentId}`, {
         model: response.model,
@@ -39,6 +57,45 @@ export class InferenceService {
       logger.error('Failed to run inference:', error);
       throw new AppError('Failed to run inference', 500, 'INFERENCE_ERROR');
     }
+  }
+
+  private async callGemini(request: InferenceRequest): Promise<LLMResponse> {
+    const systemPrompt = this.getSystemPrompt(request.type);
+
+    const response = await axios.post(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${this.geminiApiKey}`,
+      {
+        contents: [
+          {
+            parts: [
+              {
+                text: request.prompt,
+              },
+            ],
+          },
+        ],
+        systemInstruction: {
+          parts: [
+            {
+              text: systemPrompt,
+            },
+          ],
+        },
+        generationConfig: {
+          maxOutputTokens: 1024,
+        },
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    const content = response.data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    const tokens = response.data.usageMetadata?.candidatesTokenCount || 0;
+
+    return { content, tokens, model: 'gemini-1.5-flash' };
   }
 
   private async callVenice(request: InferenceRequest): Promise<LLMResponse> {

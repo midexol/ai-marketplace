@@ -212,6 +212,12 @@ class ApiClient {
     const { data } = await this.client.post('/governance/proposals', proposal);
     return data;
   }
+
+  // Faucet
+  async claimFaucet(userAddress: string): Promise<{ success: boolean; hash: string }> {
+    const { data } = await this.client.post('/portfolio/faucet', { userAddress });
+    return data;
+  }
 }
 
 export const apiClient = new ApiClient();

@@ -163,6 +163,39 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         setSmartAccount(sa);
         setSignerAccount(account);
         setUser({ ...baseUser, smartAccountAddress: sa.address });
+
+        // Auto-faucet: check USDC balance and request funds if 0
+        (async () => {
+          try {
+            const { createPublicClient, http } = await import('viem');
+            const { baseSepolia } = await import('viem/chains');
+            const client = createPublicClient({ chain: baseSepolia, transport: http() });
+
+            const balance = await client.readContract({
+              address: '0x036cbd53842c5426634e7929541ec2318f3dcf7e',
+              abi: [
+                {
+                  name: 'balanceOf',
+                  type: 'function',
+                  stateMutability: 'view',
+                  inputs: [{ name: 'account', type: 'address' }],
+                  outputs: [{ name: 'balance', type: 'uint256' }],
+                },
+              ],
+              functionName: 'balanceOf',
+              args: [sa.address],
+            }) as bigint;
+
+            if (balance === 0n) {
+              console.info('Auto-faucet: USDC balance is 0. Calling backend faucet...');
+              const { apiClient } = await import('@/services/api');
+              await apiClient.claimFaucet(sa.address);
+              console.info('Auto-faucet: Account funded successfully.');
+            }
+          } catch (faucetErr) {
+            console.error('Auto-faucet funding failed:', faucetErr);
+          }
+        })();
       } catch (saErr) {
         // Non-fatal: keep the EOA session even if the smart account fails.
         console.error('Smart account init failed:', saErr);

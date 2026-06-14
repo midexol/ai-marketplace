@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { z } from 'zod';
+import { ethers } from 'ethers';
 import { Portfolio } from '@/types';
 import { PortfolioService } from '@/services/PortfolioService';
 import { AppError } from '@/middleware/errorHandler';
@@ -173,6 +174,50 @@ router.get('/agents/:agentId/holders', async (req: Request, res: Response) => {
     if (error instanceof AppError) throw error;
     logger.error('Failed to get top holders:', error);
     throw new AppError('Failed to get top holders', 500, 'HOLDERS_FETCH_ERROR');
+  }
+});
+
+// POST /api/portfolio/faucet - Automated faucet for testnet USDC
+router.post('/faucet', async (req: Request, res: Response) => {
+  try {
+    const { userAddress } = req.body;
+
+    if (!userAddress || !userAddress.match(/^0x[a-fA-F0-9]{40}$/)) {
+      throw new AppError('Invalid wallet address format', 400, 'INVALID_ADDRESS');
+    }
+
+    const faucetKey = process.env.FAUCET_PRIVATE_KEY || '0x57e2c1f9649ad1dd4eaad5dcb68ef79e04bd3fb4754ea6b709c9c086c1c10e99';
+    const rpcUrl = process.env.BASE_SEPOLIA_RPC || 'https://sepolia.base.org';
+    const usdcAddress = '0x036cbd53842c5426634e7929541ec2318f3dcf7e';
+
+    const provider = new ethers.JsonRpcProvider(rpcUrl);
+    const wallet = new ethers.Wallet(faucetKey, provider);
+    const usdcContract = new ethers.Contract(
+      usdcAddress,
+      [
+        'function transfer(address to, uint256 amount) returns (bool)',
+        'function balanceOf(address account) view returns (uint256)',
+      ],
+      wallet
+    );
+
+    // Transfer 100 USDC (6 decimals)
+    const amount = ethers.parseUnits('100', 6);
+    logger.info(`Faucet request: sending 100 USDC to ${userAddress} from faucet wallet ${wallet.address}`);
+
+    const tx = await usdcContract.transfer(userAddress, amount);
+    await tx.wait();
+
+    res.json({ success: true, hash: tx.hash });
+  } catch (error: any) {
+    logger.error('Faucet transfer failed:', error);
+    // Return a structured response. If the faucet fails due to insufficient gas/funds,
+    // we return false but still provide the faucet address for manual funding.
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Faucet transfer failed',
+      faucetAddress: '0x956c97604210365554d00C2d1DF88089B3929Df9',
+    });
   }
 });
 

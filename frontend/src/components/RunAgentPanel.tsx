@@ -1,17 +1,31 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { apiClient } from '@/services/api';
 import type { AgentType } from '@/types';
-import { Sparkles, Loader2, AlertCircle, Cpu } from 'lucide-react';
+import { Sparkles, Loader2, AlertCircle, Cpu, Send, User, Bot } from 'lucide-react';
 import { useAuth } from '@/providers/WalletProvider';
 import { getAddress } from 'viem';
 
-/**
- * Runs the agent against the Venice API (via the backend InferenceService) and
- * renders the AI output. This is Venice "in the main flow" — the agent actually
- * reasons and produces a result.
- */
+interface Message {
+  id: string;
+  sender: 'user' | 'agent';
+  text: string;
+  timestamp: Date;
+  model?: string;
+  tokens?: number;
+}
+
+function getWelcomeMessage(name: string, type: AgentType): string {
+  const welcomes: Record<AgentType, string> = {
+    writing: `Hello! I am ${name}, your writing assistant. How can I help you draft, review, or refine your content today?`,
+    research: `Greetings. I am ${name}, specialized in deep research and analysis. Share your query, and I will compile structured findings.`,
+    governance: `Hello, I am ${name}. I analyze DAO proposals, voting models, and governance trends. What proposal or mechanism shall we assess?`,
+    butler: `At your service. I am ${name}, your AI butler. Let me know what tasks, calendar coordination, or on-chain checks you need help with.`,
+  };
+  return welcomes[type] || welcomes.writing;
+}
+
 export function RunAgentPanel({
   agentId,
   agentName,
@@ -28,31 +42,58 @@ export function RunAgentPanel({
   const [isLoading, setIsLoading] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [output, setOutput] = useState<{ result: string; model?: string; tokens?: number } | null>(
-    null
-  );
+  const [messages, setMessages] = useState<Message[]>([]);
 
-  const placeholders: Record<AgentType, string> = {
-    writing: 'Draft a launch announcement for a new AI agent…',
-    research: 'Summarize the risks of bonding-curve token pricing…',
-    governance: 'Analyze this proposal: increase the quorum to 40%…',
-    butler: 'Plan my day around 3 meetings and a deploy…',
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Initialize welcome message
+  useEffect(() => {
+    setMessages([
+      {
+        id: 'welcome',
+        sender: 'agent',
+        text: getWelcomeMessage(agentName, agentType),
+        timestamp: new Date(),
+      },
+    ]);
+  }, [agentName, agentType]);
+
+  // Auto scroll to bottom
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const handleRun = async () => {
-    if (!prompt.trim()) {
-      setError('Enter a prompt for the agent.');
-      return;
-    }
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, isLoading, statusMessage]);
+
+  const handleSend = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!prompt.trim()) return;
+
     if (!smartAccount || !signerAccount) {
       setError('Connect your wallet first to authorize the payment for this request.');
       return;
     }
 
+    const userPrompt = prompt;
+    setPrompt('');
     setError(null);
-    setOutput(null);
+
+    // Add user message to list
+    const userMessageId = 'user-' + Date.now();
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: userMessageId,
+        sender: 'user',
+        text: userPrompt,
+        timestamp: new Date(),
+      },
+    ]);
+
     setIsLoading(true);
-    setStatusMessage('Preparing request payment…');
+    setStatusMessage('Preparing payment signature…');
 
     try {
       const toAddress = getAddress(creatorAddress || '0x27288C84887ED7Aa6Ad47948Df0908E6ce4A0053');
@@ -90,7 +131,7 @@ export function RunAgentPanel({
       } as const;
 
       setStatusMessage('Please sign the micro-payment in your wallet…');
-      
+
       const signature = await signerAccount.signTypedData({
         domain,
         types,
@@ -98,7 +139,7 @@ export function RunAgentPanel({
         message,
       });
 
-      setStatusMessage('Sending prompt and settling on-chain payment…');
+      setStatusMessage('Sending query & settling payment…');
 
       const payment = {
         signature,
@@ -112,9 +153,20 @@ export function RunAgentPanel({
         chainId: 84532,
       };
 
-      const res = await apiClient.runInference(agentId, prompt, agentType, payment);
-      setOutput(res as { result: string; model?: string; tokens?: number });
-    } catch (err) {
+      const res = await apiClient.runInference(agentId, userPrompt, agentType, payment);
+      
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: 'agent-' + Date.now(),
+          sender: 'agent',
+          text: res.result,
+          timestamp: new Date(),
+          model: (res as any).model || 'mock-llm',
+          tokens: (res as any).tokens || 0,
+        },
+      ]);
+    } catch (err: any) {
       console.error('Inference failed:', err);
       setError(err instanceof Error ? err.message : 'Failed to run the agent');
     } finally {
@@ -124,56 +176,120 @@ export function RunAgentPanel({
   };
 
   return (
-    <div className="card p-6">
-      <div className="mb-1 flex items-center gap-2">
-        <Sparkles className="h-4 w-4 text-clay-400" />
-        <h3 className="font-display text-lg font-medium text-white">Run {agentName}</h3>
-      </div>
-      <p className="mb-4 text-sm text-slate-400">
-        Prompt the agent — responses are generated by{' '}
-        <span className="text-clay-400">Venice AI</span>.
-      </p>
-
-      <textarea
-        value={prompt}
-        onChange={(e) => setPrompt(e.target.value)}
-        placeholder={placeholders[agentType]}
-        rows={3}
-        className="w-full resize-none rounded-lg border border-[#493113] bg-[#130f08] px-3 py-2.5 text-white placeholder-slate-500 focus:border-clay-600 focus:outline-none"
-      />
-
-      {error && (
-        <div className="mt-3 flex items-start gap-2 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-200">
-          <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-          {error}
-        </div>
-      )}
-
-      <button onClick={handleRun} disabled={isLoading} className="btn-primary mt-3 w-full flex items-center justify-center gap-2">
-        {isLoading ? (
-          <>
-            <Loader2 className="h-4 w-4 animate-spin" /> {statusMessage || 'Thinking…'}
-          </>
-        ) : (
-          <>
-            <Sparkles className="h-4 w-4" /> Run agent
-          </>
-        )}
-      </button>
-
-      {output && (
-        <div className="mt-5 border-t border-[#493113] pt-4">
-          <p className="whitespace-pre-wrap text-sm leading-relaxed text-slate-200">
-            {output.result}
-          </p>
-          <div className="mt-3 flex items-center gap-2 font-mono text-[11px] text-slate-500">
-            <Cpu className="h-3.5 w-3.5" />
-            <span>Venice AI</span>
-            {output.model && <span>· {output.model}</span>}
-            {typeof output.tokens === 'number' && <span>· {output.tokens} tokens</span>}
+    <div className="card flex flex-col h-[550px] p-0 overflow-hidden border-[#38260f]">
+      {/* Header */}
+      <div className="flex items-center justify-between border-b border-[#38260f] bg-[#1d140a] px-4 py-3">
+        <div className="flex items-center gap-2">
+          <div className="flex h-7 w-7 items-center justify-center rounded bg-gradient-to-br from-[#ffb640] to-[#f59e1b]">
+            <Bot className="h-4 w-4 text-[#211100]" />
+          </div>
+          <div>
+            <h3 className="font-display text-sm font-semibold text-white">{agentName} Terminal</h3>
+            <div className="flex items-center gap-1.5 mt-0.5">
+              <span className="relative flex h-1.5 w-1.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+              </span>
+              <span className="text-[10px] text-emerald-400 font-medium">Online</span>
+            </div>
           </div>
         </div>
-      )}
+        <span className="chip capitalize text-xs text-cyan-300 bg-[#30200c] border-[#ffb640]/20">{agentType}</span>
+      </div>
+
+      {/* Messages */}
+      <div className="flex-1 overflow-y-auto bg-[#0d0a05] px-4 py-4 space-y-4">
+        {messages.map((msg) => (
+          <div
+            key={msg.id}
+            className={`flex items-start gap-2.5 max-w-[85%] ${
+              msg.sender === 'user' ? 'ml-auto flex-row-reverse' : ''
+            }`}
+          >
+            {/* Avatar */}
+            <div
+              className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${
+                msg.sender === 'user'
+                  ? 'bg-cyan-600/30 text-cyan-300'
+                  : 'bg-amber-600/20 text-amber-300 border border-[#ffb640]/20'
+              }`}
+            >
+              {msg.sender === 'user' ? <User className="h-3.5 w-3.5" /> : <Bot className="h-3.5 w-3.5" />}
+            </div>
+
+            {/* Bubble */}
+            <div className="space-y-1">
+              <div
+                className={`rounded-2xl px-3.5 py-2 text-sm leading-relaxed whitespace-pre-wrap ${
+                  msg.sender === 'user'
+                    ? 'bg-cyan-600/20 text-white border border-cyan-500/30 rounded-tr-none'
+                    : 'bg-[#18130c] text-slate-200 border border-[#30200c] rounded-tl-none shadow-[0_4px_12px_rgba(0,0,0,0.4)]'
+                }`}
+              >
+                {msg.text}
+              </div>
+
+              {/* Message metadata */}
+              {msg.sender === 'agent' && (msg.model || msg.tokens) && (
+                <div className="flex items-center gap-1.5 px-1 font-mono text-[9px] text-slate-500">
+                  <Cpu className="h-2.5 w-2.5" />
+                  <span>{msg.model}</span>
+                  {typeof msg.tokens === 'number' && msg.tokens > 0 && (
+                    <span>· {msg.tokens} tokens</span>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        ))}
+
+        {/* Typing / Loading Indicators */}
+        {isLoading && (
+          <div className="flex items-start gap-2.5 max-w-[85%]">
+            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-amber-600/20 text-amber-300 border border-[#ffb640]/20">
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            </div>
+            <div className="space-y-1">
+              <div className="rounded-2xl rounded-tl-none bg-[#18130c] border border-[#30200c] px-3.5 py-2 text-xs italic text-slate-400 flex items-center gap-2">
+                <span>{statusMessage || 'Thinking…'}</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div ref={messagesEndRef} />
+      </div>
+
+      {/* Footer input form */}
+      <form
+        onSubmit={handleSend}
+        className="border-t border-[#38260f] bg-[#130f08] p-3 flex flex-col gap-2"
+      >
+        {error && (
+          <div className="flex items-start gap-2 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-1.5 text-xs text-red-200">
+            <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+            <span className="flex-1">{error}</span>
+          </div>
+        )}
+
+        <div className="flex items-center gap-2">
+          <input
+            type="text"
+            value={prompt}
+            onChange={(e) => setPrompt(e.target.value)}
+            disabled={isLoading}
+            placeholder={`Message ${agentName}…`}
+            className="flex-1 rounded-lg border border-[#493113] bg-[#0d0a05] px-3.5 py-2 text-sm text-white placeholder-slate-500 focus:border-clay-600 focus:outline-none disabled:opacity-50"
+          />
+          <button
+            type="submit"
+            disabled={isLoading || !prompt.trim()}
+            className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-[#ffb640] to-[#f59e1b] hover:opacity-90 active:scale-95 disabled:opacity-30 disabled:scale-100 transition"
+          >
+            <Send className="h-4 w-4 text-[#211100]" />
+          </button>
+        </div>
+      </form>
     </div>
   );
 }

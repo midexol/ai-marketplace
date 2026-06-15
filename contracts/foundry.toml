@@ -20,3 +20,8 @@ optimizer = false
 
 [profile.production]
 optimizer_runs = 1000
+
+# Named RPC endpoints — deploy with: forge script ... --rpc-url base_sepolia
+[rpc_endpoints]
+base_sepolia = "${BASE_SEPOLIA_RPC}"
+eth_sepolia = "${ETH_SEPOLIA_RPC}"

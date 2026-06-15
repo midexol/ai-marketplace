@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/providers/WalletProvider';
-import { hasOnboarded } from '@/lib/onboarding';
+import { checkOnboarded } from '@/lib/onboarding';
 import {
   Rocket,
   Globe,
@@ -49,11 +49,16 @@ export default function Home() {
   const { authenticated, ready, user, login } = useAuth();
 
   useEffect(() => {
-    if (ready && authenticated) {
-      // Returning (onboarded) users skip the wizard; new users see it once.
-      const dest = hasOnboarded(user?.address) ? '/marketplace' : '/onboarding';
-      router.replace(dest);
-    }
+    if (!ready || !authenticated) return;
+    let cancelled = false;
+    (async () => {
+      // Backend-authoritative: returning users (any device) skip the wizard.
+      const done = await checkOnboarded(user?.address);
+      if (!cancelled) router.replace(done ? '/marketplace' : '/onboarding');
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, [authenticated, ready, user?.address, router]);
 
   // While loading, or while an authenticated user is being redirected into the

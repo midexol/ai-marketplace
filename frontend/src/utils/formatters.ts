@@ -9,6 +9,16 @@ export function formatNumber(num: string | number, decimals = 2): string {
   return n.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: decimals });
 }
 
+/** Compact notation (1.2K, 3.4M, 1.2B) so large values fit in small containers. */
+export function formatCompact(num: string | number): string {
+  const n = typeof num === 'string' ? parseFloat(num) : num;
+  if (!Number.isFinite(n)) return '0';
+  if (Math.abs(n) < 1000) {
+    return n.toLocaleString('en-US', { maximumFractionDigits: 2 });
+  }
+  return n.toLocaleString('en-US', { notation: 'compact', maximumFractionDigits: 1 });
+}
+
 export function formatPrice(priceWei: string | number, decimals = 18): string {
   if (priceWei === null || priceWei === undefined || priceWei === '') {
     return '0.0000';

@@ -8,8 +8,18 @@ contract AgentTest is Test {
     Agent agent;
     address creator = address(0x123);
 
+    // Local copy for vm.expectEmit (qualified Contract.Event needs solc >= 0.8.22).
+    event AgentCreated(
+        uint256 indexed tokenId,
+        address indexed creator,
+        string name,
+        string agentType
+    );
+
     function setUp() public {
         agent = new Agent();
+        // createAgent is now minter-gated; authorize the test creator.
+        agent.setMinter(creator, true);
     }
 
     function testCreateAgent() public {
@@ -31,7 +41,7 @@ contract AgentTest is Test {
     function testCreateAgentEmitsEvent() public {
         vm.prank(creator);
         vm.expectEmit(true, true, false, true);
-        emit Agent.AgentCreated(1, creator, "Test Agent", "writing");
+        emit AgentCreated(1, creator, "Test Agent", "writing");
 
         agent.createAgent("Test Agent", "A test AI agent", "writing");
     }

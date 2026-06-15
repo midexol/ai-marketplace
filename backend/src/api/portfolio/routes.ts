@@ -186,9 +186,19 @@ router.post('/faucet', async (req: Request, res: Response) => {
       throw new AppError('Invalid wallet address format', 400, 'INVALID_ADDRESS');
     }
 
-    const faucetKey = process.env.FAUCET_PRIVATE_KEY || '0x57e2c1f9649ad1dd4eaad5dcb68ef79e04bd3fb4754ea6b709c9c086c1c10e99';
+    const faucetKey = process.env.FAUCET_PRIVATE_KEY;
     const rpcUrl = process.env.BASE_SEPOLIA_RPC || 'https://sepolia.base.org';
     const usdcAddress = '0x036cbd53842c5426634e7929541ec2318f3dcf7e';
+    const CIRCLE_FAUCET = 'https://faucet.circle.com';
+
+    // Without a configured faucet key, send users to Circle's official faucet.
+    if (!faucetKey) {
+      return res.status(503).json({
+        success: false,
+        error: 'In-app faucet not configured. Use the official USDC faucet.',
+        faucetUrl: CIRCLE_FAUCET,
+      });
+    }
 
     const provider = new ethers.JsonRpcProvider(rpcUrl);
     const wallet = new ethers.Wallet(faucetKey, provider);
@@ -201,22 +211,32 @@ router.post('/faucet', async (req: Request, res: Response) => {
       wallet
     );
 
-    // Transfer 100 USDC (6 decimals)
-    const amount = ethers.parseUnits('100', 6);
-    logger.info(`Faucet request: sending 100 USDC to ${userAddress} from faucet wallet ${wallet.address}`);
+    // Dispense a small amount so one funding serves many demos.
+    const amount = ethers.parseUnits('10', 6);
 
+    // Fail fast & clearly if the faucet wallet is empty — no ugly revert.
+    const balance: bigint = await usdcContract.balanceOf(wallet.address);
+    if (balance < amount) {
+      logger.warn(`Faucet empty (${wallet.address}); pointing user to Circle faucet`);
+      return res.status(503).json({
+        success: false,
+        error: 'Faucet is temporarily empty. Use the official USDC faucet.',
+        faucetUrl: CIRCLE_FAUCET,
+        faucetAddress: wallet.address,
+      });
+    }
+
+    logger.info(`Faucet: sending 10 USDC to ${userAddress} from ${wallet.address}`);
     const tx = await usdcContract.transfer(userAddress, amount);
     await tx.wait();
 
-    res.json({ success: true, hash: tx.hash });
+    return res.json({ success: true, hash: tx.hash, amount: '10' });
   } catch (error: any) {
-    logger.error('Faucet transfer failed:', error);
-    // Return a structured response. If the faucet fails due to insufficient gas/funds,
-    // we return false but still provide the faucet address for manual funding.
-    res.status(500).json({
+    logger.warn(`Faucet transfer failed: ${error?.shortMessage || error?.message || 'unknown'}`);
+    return res.status(503).json({
       success: false,
-      error: error.message || 'Faucet transfer failed',
-      faucetAddress: '0x956c97604210365554d00C2d1DF88089B3929Df9',
+      error: 'Faucet unavailable. Use the official USDC faucet.',
+      faucetUrl: 'https://faucet.circle.com',
     });
   }
 });

@@ -12,6 +12,9 @@ contract Factory is Ownable {
     /// @notice The Agent NFT contract address
     Agent public agent;
 
+    /// @notice The BondingCurve that holds token inventory and prices trades
+    address public bondingCurve;
+
     /// @notice Mapping from token ID to agent token address
     mapping(uint256 => address) public tokenAddresses;
 
@@ -34,9 +37,12 @@ contract Factory is Ownable {
 
     /// @notice Initialize the Factory contract
     /// @param _agent The address of the Agent NFT contract
-    constructor(address _agent) {
+    /// @param _bondingCurve The address of the BondingCurve (receives token inventory)
+    constructor(address _agent, address _bondingCurve) {
         require(_agent != address(0), "Invalid agent address");
+        require(_bondingCurve != address(0), "Invalid bonding curve address");
         agent = Agent(_agent);
+        bondingCurve = _bondingCurve;
     }
 
     /// @notice Create a new agent and its associated token
@@ -114,7 +120,7 @@ contract Factory is Ownable {
         string memory tokenName,
         string memory tokenSymbol
     ) internal returns (address tokenAddress) {
-        // Create new AgentToken instance
+        // Create new AgentToken instance (mints INITIAL_SUPPLY to this Factory)
         AgentToken newToken = new AgentToken(
             tokenName,
             tokenSymbol,
@@ -122,6 +128,14 @@ contract Factory is Ownable {
         );
 
         tokenAddress = address(newToken);
+
+        // Seed the bonding curve with the full supply so it can dispense tokens
+        // to buyers. All tokens are sold through the curve (fair launch).
+        uint256 supplyToSeed = newToken.balanceOf(address(this));
+        require(
+            newToken.transfer(bondingCurve, supplyToSeed),
+            "Curve seeding failed"
+        );
 
         // Store token address
         tokenAddresses[agentTokenId] = tokenAddress;

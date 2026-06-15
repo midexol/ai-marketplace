@@ -44,14 +44,18 @@ contract Deploy is Script {
         console.log("BondingCurve deployed at:", bondingCurveAddress);
 
         // Deploy VIRTUAL governance token
-        VIRTUAL virtual = new VIRTUAL();
-        virtualAddress = address(virtual);
+        VIRTUAL virtualToken = new VIRTUAL();
+        virtualAddress = address(virtualToken);
         console.log("VIRTUAL governance token deployed at:", virtualAddress);
 
-        // Deploy Factory contract
-        Factory factory = new Factory(agentAddress);
+        // Deploy Factory contract (wired to the bonding curve for inventory seeding)
+        Factory factory = new Factory(agentAddress, bondingCurveAddress);
         factoryAddress = address(factory);
         console.log("Factory deployed at:", factoryAddress);
+
+        // Authorize the Factory to mint agents on the Agent NFT contract.
+        agent.setMinter(factoryAddress, true);
+        console.log("Factory authorized as Agent minter");
 
         // Deploy Marketplace contract
         Marketplace marketplace = new Marketplace();

@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { apiClient } from '@/services/api';
 import type { AgentType } from '@/types';
-import { Sparkles, Loader2, AlertCircle, Cpu, Send, User, Bot } from 'lucide-react';
+import { Loader2, AlertCircle, Cpu, Send, User, Bot } from 'lucide-react';
 import { useAuth } from '@/providers/WalletProvider';
 import { getAddress } from 'viem';
 

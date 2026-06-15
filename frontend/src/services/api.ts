@@ -151,6 +151,18 @@ class ApiClient {
     return data;
   }
 
+  // User profile — used to detect returning (already-onboarded) users.
+  async getUserProfile(
+    address: string
+  ): Promise<{ address: string; metadata?: Record<string, any> } | null> {
+    try {
+      const { data } = await this.client.get(`/portfolio/user/${address}`);
+      return data;
+    } catch {
+      return null;
+    }
+  }
+
   // User preferences
   async saveUserPreferences(
     address: string,

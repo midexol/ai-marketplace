@@ -3,9 +3,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAppStore } from '@/store/useAppStore';
 import { apiClient } from '@/services/api';
-import { shortenAddress, formatNumber } from '@/utils/formatters';
+import { shortenAddress, formatCompact } from '@/utils/formatters';
 import { PageHeader, Spinner } from '@/components/PageHeader';
-import { Vote, Lock, FileText, Gauge, Check, X, Loader2, AlertCircle } from 'lucide-react';
+import { Vote, Lock, FileText, Gauge, Check, X, Loader2, AlertCircle, Plus } from 'lucide-react';
 
 interface Proposal {
   id: string;
@@ -61,13 +61,18 @@ export default function GovernancePage() {
 
       {/* Stats */}
       <div className="mb-10 grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <StatCard icon={FileText} label="Proposals" value={formatNumber(proposals.length)} />
-        <StatCard icon={Gauge} label="Active" value={formatNumber(activeCount)} />
-        <StatCard icon={Vote} label="Voting Power" value={formatNumber(votingPower.power)} />
-        <StatCard icon={Lock} label="veVIRTUAL" value={formatNumber(votingPower.veVIRTUAL)} />
+        <StatCard icon={FileText} label="Proposals" value={formatCompact(proposals.length)} />
+        <StatCard icon={Gauge} label="Active" value={formatCompact(activeCount)} />
+        <StatCard icon={Vote} label="Voting Power" value={formatCompact(votingPower.power)} />
+        <StatCard icon={Lock} label="veVIRTUAL" value={formatCompact(votingPower.veVIRTUAL)} />
       </div>
 
-      <h2 className="mb-5 text-xl font-semibold text-white">Active Proposals</h2>
+      <div className="mb-5 flex items-center justify-between gap-4">
+        <h2 className="text-xl font-semibold text-white">Active Proposals</h2>
+        {userAddress && (
+          <CreateProposalButton proposer={userAddress} onCreated={fetchData} />
+        )}
+      </div>
 
       {isLoading ? (
         <Spinner />
@@ -106,10 +111,12 @@ function StatCard({
   return (
     <div className="card p-5">
       <div className="mb-2 flex items-center gap-2 text-slate-400">
-        <Icon className="h-4 w-4" />
-        <span className="text-xs">{label}</span>
+        <Icon className="h-4 w-4 shrink-0" />
+        <span className="truncate text-xs">{label}</span>
       </div>
-      <p className="text-2xl font-bold text-white">{value}</p>
+      <p className="truncate text-2xl font-bold text-white" title={value}>
+        {value}
+      </p>
     </div>
   );
 }
@@ -170,12 +177,12 @@ function ProposalCard({
       </div>
 
       <div className="space-y-3">
-        <VoteBar label="For" value={formatNumber(forV)} pct={pct(forV)} color="bg-emerald-500" textColor="text-emerald-400" />
-        <VoteBar label="Against" value={formatNumber(againstV)} pct={pct(againstV)} color="bg-red-500" textColor="text-red-400" />
-        <VoteBar label="Abstain" value={formatNumber(abstainV)} pct={pct(abstainV)} color="bg-slate-500" textColor="text-slate-400" />
+        <VoteBar label="For" value={formatCompact(forV)} pct={pct(forV)} color="bg-emerald-500" textColor="text-emerald-400" />
+        <VoteBar label="Against" value={formatCompact(againstV)} pct={pct(againstV)} color="bg-red-500" textColor="text-red-400" />
+        <VoteBar label="Abstain" value={formatCompact(abstainV)} pct={pct(abstainV)} color="bg-slate-500" textColor="text-slate-400" />
       </div>
 
-      <p className="mt-3 text-xs text-slate-500">{formatNumber(total)} total votes</p>
+      <p className="mt-3 text-xs text-slate-500">{formatCompact(total)} total votes</p>
 
       {error && (
         <div className="mt-3 flex items-center gap-2 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-200">
@@ -210,6 +217,88 @@ function ProposalCard({
               </button>
             </div>
           ))}
+      </div>
+    </div>
+  );
+}
+
+function CreateProposalButton({
+  proposer,
+  onCreated,
+}: {
+  proposer: string;
+  onCreated: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const submit = async () => {
+    setError(null);
+    if (!title.trim() || !description.trim()) {
+      setError('Title and description are required.');
+      return;
+    }
+    setBusy(true);
+    try {
+      await apiClient.createProposal({ title, description, proposer });
+      setTitle('');
+      setDescription('');
+      setOpen(false);
+      onCreated();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to create proposal');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  if (!open) {
+    return (
+      <button onClick={() => setOpen(true)} className="btn-primary px-4 py-2 text-sm">
+        <Plus className="h-4 w-4" /> New Proposal
+      </button>
+    );
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={() => setOpen(false)}>
+      <div className="card w-full max-w-md p-6" onClick={(e) => e.stopPropagation()}>
+        <h3 className="mb-1 text-lg font-semibold text-white">Create Proposal</h3>
+        <p className="mb-4 text-sm text-slate-400">
+          Any token holder can submit a proposal for the community to vote on.
+        </p>
+        <div className="space-y-3">
+          <input
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="Proposal title"
+            className="w-full rounded-lg border border-[#493113] bg-[#130f08] px-3 py-2 text-white placeholder-slate-500 focus:border-clay-600 focus:outline-none"
+          />
+          <textarea
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Describe what this proposal does and why…"
+            rows={4}
+            className="w-full resize-none rounded-lg border border-[#493113] bg-[#130f08] px-3 py-2 text-white placeholder-slate-500 focus:border-clay-600 focus:outline-none"
+          />
+          {error && (
+            <div className="flex items-center gap-2 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-200">
+              <AlertCircle className="h-3.5 w-3.5 shrink-0" /> {error}
+            </div>
+          )}
+          <div className="flex gap-2">
+            <button onClick={() => setOpen(false)} className="btn-ghost flex-1 text-sm">
+              Cancel
+            </button>
+            <button onClick={submit} disabled={busy} className="btn-primary flex-1 text-sm">
+              {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+              Submit
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );

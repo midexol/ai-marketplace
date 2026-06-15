@@ -27,8 +27,11 @@ contract IntegrationTest is Test {
         agent = new Agent();
         bondingCurve = new BondingCurve();
         virtual_ = new VIRTUAL();
-        factory = new Factory(address(agent));
+        factory = new Factory(address(agent), address(bondingCurve));
         marketplace = new Marketplace();
+
+        // Factory must be an authorized minter to create agents.
+        agent.setMinter(address(factory), true);
 
         // Setup ETH
         vm.deal(agentCreator, 100 ether);
@@ -56,17 +59,15 @@ contract IntegrationTest is Test {
         assertEq(metadata.name, "Trading Bot AI");
         assertEq(metadata.creator, agentCreator);
 
-        // Step 3: Get tokens to traders
+        // Step 3: Get tokens to traders. The full supply now lives in the
+        // bonding curve (fair launch), so distribute from there for the test.
         AgentToken token = AgentToken(tokenAddr);
         uint256 transferAmount = 1000 * 10 ** 18;
 
-        vm.prank(agentCreator);
-        token.approve(address(trader1), transferAmount);
-
-        vm.prank(agentCreator);
+        vm.prank(address(bondingCurve));
         token.transfer(trader1, transferAmount);
 
-        vm.prank(agentCreator);
+        vm.prank(address(bondingCurve));
         token.transfer(trader2, transferAmount);
 
         assertEq(token.balanceOf(trader1), transferAmount);
@@ -108,20 +109,17 @@ contract IntegrationTest is Test {
 
         // Verify purchase
         assertEq(token.balanceOf(trader2), transferAmount + buyAmount);
-        assertEq(token.balanceOf(marketplace), sellAmount - buyAmount);
+        assertEq(token.balanceOf(address(marketplace)), sellAmount - buyAmount);
         console.log("Trader2 bought %d tokens from order", buyAmount);
 
-        // Step 7: Use bonding curve to trade
+        // Step 7: Use bonding curve to trade. The curve dispenses tokens FROM
+        // its own inventory in exchange for ETH, so seed it first.
         AgentToken testToken = new AgentToken(
             "Bonding Test",
             "BT",
             address(agent)
         );
-
-        testToken.mint(trader1, 10_000 * 10 ** 18);
-
-        vm.prank(trader1);
-        testToken.approve(address(bondingCurve), type(uint256).max);
+        testToken.mint(address(bondingCurve), 10_000 * 10 ** 18);
 
         uint256 curveAmount = 100 * 10 ** 18;
         uint256 buyPrice = bondingCurve.getBuyPrice(address(testToken), curveAmount);
@@ -129,18 +127,23 @@ contract IntegrationTest is Test {
         vm.prank(trader1);
         bondingCurve.buy{value: buyPrice}(address(testToken), curveAmount);
 
+        // Buyer received the tokens; curve tracked supply + reserve.
+        assertEq(testToken.balanceOf(trader1), curveAmount);
         assertEq(bondingCurve.getSupply(address(testToken)), curveAmount);
         assertEq(bondingCurve.getReserve(address(testToken)), buyPrice);
         console.log("Bought %d tokens from bonding curve for %d wei", curveAmount, buyPrice);
 
-        // Step 8: Sell back from bonding curve
+        // Step 8: Sell back to the bonding curve (seller approves, curve pays ETH)
         uint256 sellPrice = bondingCurve.getSellPrice(address(testToken), curveAmount);
+
+        vm.prank(trader1);
+        testToken.approve(address(bondingCurve), curveAmount);
 
         vm.prank(trader1);
         bondingCurve.sell(address(testToken), curveAmount);
 
         assertEq(bondingCurve.getSupply(address(testToken)), 0);
-        assertEq(sellPrice, buyPrice, "Buy/sell prices should match for quadratic curve");
+        assertEq(sellPrice, buyPrice, "Buy/sell prices must be symmetric on the curve");
         console.log("Sold %d tokens back to bonding curve for %d wei", curveAmount, sellPrice);
 
         // Step 9: Verify marketplace fee collection
@@ -206,7 +209,7 @@ contract IntegrationTest is Test {
             assertNotEq(metadata.createdAt, 0);
         }
 
-        console.log("Successfully created and verified %d agents", 3);
+        console.log("Successfully created and verified agents:", uint256(3));
     }
 
     function testMarketplaceWithMultipleOrders() public {
@@ -222,10 +225,10 @@ contract IntegrationTest is Test {
 
         AgentToken token = AgentToken(tokenAddr);
 
-        // Distribute tokens
-        vm.prank(agentCreator);
+        // Distribute tokens from the bonding curve (holds the fair-launch supply)
+        vm.prank(address(bondingCurve));
         token.transfer(trader1, 10000 * 10 ** 18);
-        vm.prank(agentCreator);
+        vm.prank(address(bondingCurve));
         token.transfer(trader2, 10000 * 10 ** 18);
 
         // Create multiple orders
@@ -255,7 +258,7 @@ contract IntegrationTest is Test {
             marketplace.buyFromOrder{value: totalPrice}(orderIds[i], buyAmount);
         }
 
-        console.log("Created and executed trades from %d orders", 3);
+        console.log("Created and executed trades from orders:", uint256(3));
     }
 
     function testVIRTUALTokenFunctionality() public {

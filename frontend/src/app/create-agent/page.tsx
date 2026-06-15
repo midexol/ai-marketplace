@@ -78,8 +78,8 @@ export default function CreateAgentPage() {
           spendingLimit: formData.spendingLimit,
           targetProtocols: formData.targetProtocols,
           isLocked: formData.isLocked,
-        } as any,
-      });
+        },
+      } as any);
 
       await queryClient.invalidateQueries({ queryKey: ['agents'] });
       setFormData({

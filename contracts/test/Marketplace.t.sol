@@ -12,6 +12,21 @@ contract MarketplaceTest is Test {
     address buyer = address(0x456);
     uint256 pricePerToken = 0.1 ether;
 
+    // Local copies for vm.expectEmit (qualified Contract.Event needs solc >= 0.8.22).
+    event OrderCreated(
+        uint256 indexed orderId,
+        address indexed seller,
+        address indexed agentToken,
+        uint256 amount,
+        uint256 pricePerToken
+    );
+    event TokensBought(
+        uint256 indexed orderId,
+        address indexed buyer,
+        uint256 amount,
+        uint256 totalPrice
+    );
+
     function setUp() public {
         marketplace = new Marketplace();
         token = new AgentToken("Test Token", "TEST", address(0x789));
@@ -336,7 +351,7 @@ contract MarketplaceTest is Test {
 
         vm.prank(seller);
         vm.expectEmit(true, true, true, true);
-        emit Marketplace.OrderCreated(1, seller, address(token), amount, pricePerToken);
+        emit OrderCreated(1, seller, address(token), amount, pricePerToken);
         marketplace.createOrder(address(token), amount, pricePerToken);
     }
 
@@ -353,7 +368,7 @@ contract MarketplaceTest is Test {
 
         vm.prank(buyer);
         vm.expectEmit(true, true, false, true);
-        emit Marketplace.TokensBought(orderId, buyer, amount, totalPrice);
+        emit TokensBought(orderId, buyer, amount, totalPrice);
         marketplace.buyFromOrder{value: totalPrice}(orderId, amount);
     }
 

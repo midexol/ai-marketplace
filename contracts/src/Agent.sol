@@ -34,6 +34,18 @@ contract Agent is ERC721, Ownable {
     /// @notice Mapping from token ID to associated ERC-20 token address
     mapping(uint256 => address) public agentTokenAddress;
 
+    /// @notice Addresses authorized to mint agents (e.g. the Factory)
+    mapping(address => bool) public minters;
+
+    /// @notice Emitted when a minter is authorized or revoked
+    event MinterSet(address indexed minter, bool allowed);
+
+    /// @notice Restrict a call to the owner or an authorized minter
+    modifier onlyMinter() {
+        require(msg.sender == owner() || minters[msg.sender], "Not authorized to mint");
+        _;
+    }
+
     /// @notice Emitted when a new agent is created
     /// @param tokenId The ID of the created agent NFT
     /// @param creator The address of the agent creator
@@ -54,7 +66,18 @@ contract Agent is ERC721, Ownable {
     /// @notice Initialize the Agent contract
     constructor() ERC721("AI Agent", "AGENT") {}
 
+    /// @notice Authorize or revoke an address that may mint agents
+    /// @dev Only the contract owner can manage minters
+    /// @param minter The address to update
+    /// @param allowed Whether the address may mint
+    function setMinter(address minter, bool allowed) public onlyOwner {
+        require(minter != address(0), "Invalid minter");
+        minters[minter] = allowed;
+        emit MinterSet(minter, allowed);
+    }
+
     /// @notice Create a new agent NFT
+    /// @dev Restricted to the owner or an authorized minter (e.g. the Factory)
     /// @param name The name of the agent
     /// @param description The description of the agent
     /// @param agentType The type of agent (writing, research, governance, butler)
@@ -63,7 +86,7 @@ contract Agent is ERC721, Ownable {
         string memory name,
         string memory description,
         string memory agentType
-    ) public returns (uint256) {
+    ) public onlyMinter returns (uint256) {
         require(bytes(name).length > 0, "Name cannot be empty");
         require(bytes(agentType).length > 0, "Agent type cannot be empty");
 
@@ -116,10 +139,5 @@ contract Agent is ERC721, Ownable {
         return _tokenIds.current();
     }
 
-    /// @notice Check if an agent NFT exists
-    /// @param tokenId The ID of the agent
-    /// @return true if the agent exists, false otherwise
-    function _exists(uint256 tokenId) internal view returns (bool) {
-        return ownerOf(tokenId) != address(0);
-    }
+    // Note: `_exists(uint256)` is inherited from OpenZeppelin ERC721.
 }

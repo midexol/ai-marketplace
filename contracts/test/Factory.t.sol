@@ -5,15 +5,31 @@ import "forge-std/Test.sol";
 import "../src/Agent.sol";
 import "../src/AgentToken.sol";
 import "../src/Factory.sol";
+import "../src/BondingCurve.sol";
 
 contract FactoryTest is Test {
     Agent agent;
     Factory factory;
+    BondingCurve bondingCurve;
     address creator = address(0x123);
+
+    // Local copy for vm.expectEmit (qualified Contract.Event needs solc >= 0.8.22).
+    event AgentTokenCreated(
+        uint256 indexed agentTokenId,
+        address indexed tokenAddress,
+        string name,
+        string symbol,
+        address indexed creator
+    );
 
     function setUp() public {
         agent = new Agent();
-        factory = new Factory(address(agent));
+        bondingCurve = new BondingCurve();
+        factory = new Factory(address(agent), address(bondingCurve));
+        // Factory must be an authorized minter to create agents.
+        agent.setMinter(address(factory), true);
+        // Tests also mint agents directly as `creator`.
+        agent.setMinter(creator, true);
     }
 
     function testCreateAgentWithToken() public {
@@ -173,9 +189,9 @@ contract FactoryTest is Test {
         assertEq(factory.getCreatedTokensCount(), 5);
     }
 
-    function testAgentTokenInitialMint() public {
+    function testAgentTokenSeedsBondingCurve() public {
         vm.prank(creator);
-        (uint256 agentId, address tokenAddr) = factory.createAgentWithToken(
+        (, address tokenAddr) = factory.createAgentWithToken(
             "Agent",
             "desc",
             "writing",
@@ -185,25 +201,20 @@ contract FactoryTest is Test {
 
         AgentToken token = AgentToken(tokenAddr);
 
-        // AgentToken mints to creator initially
-        uint256 creatorBalance = token.balanceOf(creator);
-        assertEq(creatorBalance, 1_000_000 * 10 ** 18);
+        // Full supply is seeded into the bonding curve (fair launch) — buyers
+        // acquire tokens from the curve rather than from the creator.
+        assertEq(token.balanceOf(address(bondingCurve)), 1_000_000 * 10 ** 18);
+        assertEq(token.balanceOf(creator), 0);
     }
 
     function testEmitAgentTokenCreated() public {
+        // Only check topics we know up front (agentId + creator); the token
+        // address is unknown before deployment, so don't match on data.
         vm.prank(creator);
-        vm.expectEmit(true, true, true, true);
-        emit Factory.AgentTokenCreated(
-            1,
-            address(0), // We won't know the exact address beforehand
-            "Token",
-            "TOK",
-            creator
-        );
+        vm.expectEmit(true, false, true, false);
+        emit AgentTokenCreated(1, address(0), "Token", "TOK", creator);
 
-        // This will emit the event - we're just checking it exists
-        // The actual address is unknown before deployment
-        // So we just check the event structure is valid
+        factory.createAgentWithToken("Agent", "desc", "writing", "Token", "TOK");
     }
 
     function testTokenApprovalAndTransfer() public {
@@ -221,6 +232,10 @@ contract FactoryTest is Test {
         address recipient = address(0x789);
         uint256 transferAmount = 1000 * 10 ** 18;
 
+        // The curve holds the supply now; fund the creator for the ERC-20 test.
+        vm.prank(address(bondingCurve));
+        token.transfer(creator, transferAmount);
+
         vm.prank(creator);
         token.approve(recipient, transferAmount);
 
@@ -234,7 +249,10 @@ contract FactoryTest is Test {
 
     function testFactoryInvalidAddresses() public {
         vm.expectRevert("Invalid agent address");
-        new Factory(address(0));
+        new Factory(address(0), address(bondingCurve));
+
+        vm.expectRevert("Invalid bonding curve address");
+        new Factory(address(agent), address(0));
     }
 
     function testEmptyTokenNameRevert() public {

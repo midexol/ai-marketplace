@@ -94,16 +94,20 @@ export async function buyTokens(params: {
   amountTokens: number;
 }): Promise<{ hash: string }> {
   const { signer, token, amountTokens } = params;
-  const { ethers } = await import('ethers');
-  const curve = new ethers.Contract(BONDING_CURVE_ADDRESS, CURVE_ABI, signer);
-  const amount = ethers.parseUnits(String(amountTokens), 18);
-  const cost: bigint = await curve.getBuyPrice(token, amount);
+  try {
+    const { ethers } = await import('ethers');
+    const curve = new ethers.Contract(BONDING_CURVE_ADDRESS, CURVE_ABI, signer);
+    const amount = ethers.parseUnits(String(amountTokens), 18);
+    const cost: bigint = await curve.getBuyPrice(token, amount);
 
-  // Small buffer so a price tick between quote and mine doesn't revert.
-  const value = (cost * 101n) / 100n;
-  const tx = await curve.buy(token, amount, { value });
-  await tx.wait();
-  return { hash: tx.hash };
+    // Small buffer so a price tick between quote and mine doesn't revert.
+    const value = (cost * 101n) / 100n;
+    const tx = await curve.buy(token, amount, { value });
+    await tx.wait();
+    return { hash: tx.hash };
+  } catch (err) {
+    throw new Error(humanizeTradeError(err));
+  }
 }
 
 /** Sell tokens back to the curve (approve, then sell). */
@@ -113,15 +117,19 @@ export async function sellTokens(params: {
   amountTokens: number;
 }): Promise<{ hash: string }> {
   const { signer, token, amountTokens } = params;
-  const { ethers } = await import('ethers');
-  const amount = ethers.parseUnits(String(amountTokens), 18);
+  try {
+    const { ethers } = await import('ethers');
+    const amount = ethers.parseUnits(String(amountTokens), 18);
 
-  const erc20 = new ethers.Contract(token, ERC20_ABI, signer);
-  const approveTx = await erc20.approve(BONDING_CURVE_ADDRESS, amount);
-  await approveTx.wait();
+    const erc20 = new ethers.Contract(token, ERC20_ABI, signer);
+    const approveTx = await erc20.approve(BONDING_CURVE_ADDRESS, amount);
+    await approveTx.wait();
 
-  const curve = new ethers.Contract(BONDING_CURVE_ADDRESS, CURVE_ABI, signer);
-  const tx = await curve.sell(token, amount);
-  await tx.wait();
-  return { hash: tx.hash };
+    const curve = new ethers.Contract(BONDING_CURVE_ADDRESS, CURVE_ABI, signer);
+    const tx = await curve.sell(token, amount);
+    await tx.wait();
+    return { hash: tx.hash };
+  } catch (err) {
+    throw new Error(humanizeTradeError(err));
+  }
 }

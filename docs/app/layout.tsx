@@ -19,7 +19,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <Navbar
       logo={
         <span style={{ fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ background: '#ffb640', color: '#211100', width: '24px', height: '24px', borderRadius: '6px', display: 'flex', alignItems: 'center', justify: 'center', fontSize: '14px', fontWeight: 'bold' }}>S</span>
+          <span style={{ background: '#ffb640', color: '#211100', width: '24px', height: '24px', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', fontWeight: 'bold' }}>S</span>
           Synapse Docs
         </span>
       }

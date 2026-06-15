@@ -7,7 +7,7 @@
 
 export const BONDING_CURVE_ADDRESS =
   process.env.NEXT_PUBLIC_BONDING_CURVE_ADDRESS ||
-  '0x052A5157Af55ad957C92a0dD5c3C0EAe669c64cB';
+  '0x997FB663329ECFA2A02251De107317640a40738E';
 
 const RPC = process.env.NEXT_PUBLIC_BASE_SEPOLIA_RPC || 'https://sepolia.base.org';
 
@@ -20,6 +20,33 @@ const CURVE_ABI = [
 ];
 
 const ERC20_ABI = ['function approve(address spender, uint256 amount) returns (bool)'];
+
+/** Turn a raw ethers/contract error into a short, human-readable message. */
+export function humanizeTradeError(err: unknown): string {
+  const e = err as any;
+  const reason: string =
+    e?.reason || e?.revert?.args?.[0] || e?.shortMessage || e?.message || '';
+
+  const map: Record<string, string> = {
+    'Insufficient supply': "There aren't enough tokens in the pool to sell that amount yet.",
+    'Cannot sell more than supply': "You can't sell more than the pool currently holds.",
+    'Insufficient curve inventory': 'This agent has no tokens available to buy yet.',
+    'Insufficient payment': 'The price moved — not enough ETH sent. Try again.',
+    'Insufficient reserve': 'The pool has no ETH reserve to pay out this sale yet.',
+    'Amount below minimum': 'Trade amount is too small (minimum is 1 token).',
+  };
+  for (const key of Object.keys(map)) {
+    if (reason.includes(key)) return map[key];
+  }
+
+  if (reason.includes('insufficient funds')) {
+    return 'Not enough Base Sepolia ETH for gas. Use the faucet to get test ETH.';
+  }
+  if (e?.code === 'ACTION_REJECTED' || reason.includes('user rejected')) {
+    return 'Transaction rejected.';
+  }
+  return 'Transaction failed. Please try again.';
+}
 
 /** Read-only curve contract (public RPC). */
 async function readCurve() {
@@ -34,6 +61,23 @@ export async function getBuyPrice(token: string, amountTokens: number): Promise<
   const curve = await readCurve();
   const amount = ethers.parseUnits(String(amountTokens), 18);
   return curve.getBuyPrice(token, amount);
+}
+
+/**
+ * Live spot price per 1 token, as a formatted ETH string (e.g. "0.000100").
+ * Returns null for DB-only agents (no real on-chain token).
+ */
+export async function getSpotPriceEth(token?: string): Promise<string | null> {
+  if (!token || token === '0x0000000000000000000000000000000000000000') return null;
+  try {
+    const { ethers } = await import('ethers');
+    const wei = await getBuyPrice(token, 1);
+    const eth = Number(ethers.formatEther(wei));
+    // Small floor price needs more decimals than 2 to be visible.
+    return eth.toLocaleString('en-US', { minimumFractionDigits: 4, maximumFractionDigits: 6 });
+  } catch {
+    return null;
+  }
 }
 
 export async function getSellPrice(token: string, amountTokens: number): Promise<bigint> {

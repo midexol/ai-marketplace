@@ -183,19 +183,25 @@ export default function CreateAgentPage() {
           <h3 className="text-md font-semibold text-white mb-2">2. Character Card & Permission Scopes</h3>
           <div className="space-y-4">
             <div>
-              <label className="mb-2 block text-sm font-medium text-slate-300">Allowed Actions Scope</label>
+              <label className="mb-1 block text-sm font-medium text-slate-200">Allowed Actions Scope</label>
+              <p className="text-xs text-slate-400 mb-2 leading-relaxed">
+                What functions can the agent run? Use <code className="text-cyan-400 font-mono">run-inference</code> to allow the agent to process reasoning queries, and <code className="text-cyan-400 font-mono">transfer</code> to allow it to move funds.
+              </p>
               <input
                 type="text"
                 name="allowedActions"
                 value={formData.allowedActions}
                 onChange={handleInputChange}
-                placeholder="e.g., run-inference, transfer, trade"
+                placeholder="e.g., run-inference, transfer"
                 className={inputClass}
               />
             </div>
 
             <div>
-              <label className="mb-2 block text-sm font-medium text-slate-300">Spending Limit (USDC)</label>
+              <label className="mb-1 block text-sm font-medium text-slate-200">Spending Limit (USDC)</label>
+              <p className="text-xs text-slate-400 mb-2 leading-relaxed">
+                The maximum amount of money (in USDC) the agent is allowed to spend. This acts as a strict safety guardrail so the agent cannot spend more than this cap.
+              </p>
               <input
                 type="number"
                 name="spendingLimit"
@@ -206,7 +212,10 @@ export default function CreateAgentPage() {
             </div>
 
             <div>
-              <label className="mb-2 block text-sm font-medium text-slate-300">Allowed Target Protocols</label>
+              <label className="mb-1 block text-sm font-medium text-slate-200">Allowed Target Protocols</label>
+              <p className="text-xs text-slate-400 mb-2 leading-relaxed">
+                The blockchain addresses (smart contracts) the agent is allowed to interact with. For security, default is set to the Base Sepolia USDC contract, preventing it from sending funds to unauthorized addresses.
+              </p>
               <input
                 type="text"
                 name="targetProtocols"

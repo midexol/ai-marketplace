@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useAgent } from '@/hooks/useAgent';
 import { useTrades, useMarketPrice } from '@/hooks/useMarketplace';
+import { usePortfolio } from '@/hooks/usePortfolio';
 import { useAppStore } from '@/store/useAppStore';
 import { PriceChart } from '@/components/PriceChart';
 import { TradeForm, TradeFormData } from '@/components/TradeForm';
@@ -18,7 +19,7 @@ import {
   shortenAddress,
 } from '@/utils/formatters';
 import { Trade } from '@/types';
-import { AlertCircle, TrendingUp, TrendingDown, Wallet } from 'lucide-react';
+import { AlertCircle, TrendingUp, TrendingDown, Wallet, Bot, Sparkles } from 'lucide-react';
 
 interface PageProps {
   params: { id: string };
@@ -33,6 +34,10 @@ export default function AgentDetailPage({ params }: PageProps) {
   const { data: agent, isLoading: agentLoading, error: agentError } = useAgent(params.id);
   const { data: trades, isLoading: tradesLoading } = useTrades(params.id);
   const { data: priceData } = useMarketPrice(params.id, selectedChain);
+  const { data: portfolio } = usePortfolio(userAddress);
+
+  const isCreator = agent?.creatorAddress?.toLowerCase() === userAddress?.toLowerCase();
+  const hasBought = isCreator || (portfolio?.some((item) => item.agentId === params.id && parseFloat(item.balance) > 0) || false);
   const chains = Array.isArray(agent?.chains) ? agent.chains.filter(Boolean) : [];
   const activeChain = chains.includes(selectedChain) ? selectedChain : chains[0] || 'ethereum';
 
@@ -104,8 +109,44 @@ export default function AgentDetailPage({ params }: PageProps) {
       <div className="mb-8 grid grid-cols-1 gap-8 lg:grid-cols-3">
         {/* Left */}
         <div className="space-y-6 lg:col-span-2">
-          {/* Run the agent — Venice AI in the main flow */}
-          <RunAgentPanel agentId={agent.id} agentName={agent.name} agentType={agent.type} creatorAddress={agent.creatorAddress} />
+          {/* Run the agent — Venice AI in the main flow (Unlocked only if bought/owned) */}
+          {hasBought ? (
+            <RunAgentPanel
+              agentId={agent.id}
+              agentName={agent.name}
+              agentType={agent.type}
+              creatorAddress={agent.creatorAddress}
+            />
+          ) : (
+            <div className="card flex flex-col items-center justify-center h-[550px] text-center p-8 border-[#38260f] bg-[#0d0a05] relative overflow-hidden animate-fade-in">
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,182,64,0.03)_0%,transparent_60%)] pointer-events-none" />
+              
+              <div className="relative z-10 space-y-6 max-w-md">
+                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-[#ffb640]/20 bg-[#23170a] text-[#ffb640] animate-pulse shadow-[0_0_20px_rgba(255,182,64,0.1)]">
+                  <Bot className="h-8 w-8" />
+                </div>
+                
+                <div className="space-y-2">
+                  <h3 className="font-display text-xl font-bold text-white">Terminal Locked</h3>
+                  <p className="text-sm text-slate-400 leading-relaxed">
+                    You must own <span className="font-semibold text-amber-400">{agent.name}</span> tokens to chat and interact with this agent.
+                  </p>
+                </div>
+
+                <div className="pt-2">
+                  <button
+                    onClick={() => {
+                      setTradeType('buy');
+                      setShowTradeForm(true);
+                    }}
+                    className="btn-primary px-8 py-3 inline-flex items-center gap-2"
+                  >
+                    <Sparkles className="h-4 w-4" /> Buy {agent.name} Tokens
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Chain selector */}
           <div>

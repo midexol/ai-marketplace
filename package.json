@@ -10,12 +10,5 @@
     "multi-chain"
   ],
   "author": "",
-  "license": "MIT",
-  "workspaces": [
-    "frontend",
-    "docs"
-  ],
-  "scripts": {
-    "build": "npm run build --workspace=synapse-docs"
-  }
+  "license": "MIT"
 }

@@ -166,7 +166,33 @@ class ApiClient {
   // Portfolio
   async getPortfolio(userAddress: string): Promise<Portfolio[]> {
     const { data } = await this.client.get(`/portfolio/${userAddress}`);
-    return data;
+    const holdings = Array.isArray(data)
+      ? data
+      : (data && typeof data === 'object' && 'holdings' in data && Array.isArray((data as any).holdings))
+        ? (data as any).holdings
+        : [];
+
+    return holdings.map((h: any) => ({
+      id: h.id || h.agentId,
+      userAddress: userAddress,
+      agentId: h.agentId,
+      chain: h.chain,
+      balance: h.balance || '0',
+      price: h.currentPrice || '0',
+      percentageChange: String(h.gainLossPercentage || '0'),
+      agent: {
+        id: h.agentId,
+        name: h.agentName || 'Unknown Agent',
+        description: '',
+        creatorAddress: '',
+        type: 'writing',
+        tokenAddresses: {},
+        chains: [h.chain],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      updatedAt: new Date(),
+    }));
   }
 
   async getPortfolioValue(userAddress: string): Promise<{ totalValue: string; change24h: string }> {

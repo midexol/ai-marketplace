@@ -6,12 +6,14 @@ Deployed via `forge script script/Deploy.s.sol:Deploy --rpc-url base_sepolia --b
 
 | Contract | Address |
 |---|---|
-| Agent (ERC-721) | `0x86020f6A49b0b6d4F3139e492221A1972E66F809` |
-| AgentToken (implementation) | `0xb6755a34128A4E4D1666C24F84A911Ad64bBfFbA` |
-| BondingCurve | `0x052A5157Af55ad957C92a0dD5c3C0EAe669c64cB` |
-| VIRTUAL (governance) | `0x5c12e3753529607942Ee4c5BD9753857d5d8f67a` |
-| Factory | `0xdf40B6087Ac3B2517953d9c2E47D196b45742917` |
-| Marketplace | `0x2D42c1bc5f6197DFAfa4F62dB60228657631fd02` |
+| Agent (ERC-721) | `0xA99e4f9BB53504d0ce76c0d1Cb3B8bf044a00fBe` |
+| AgentToken (implementation) | `0x667A7fd2EFDb68450Cb9049Bf869323e318B680f` |
+| BondingCurve | `0x997FB663329ECFA2A02251De107317640a40738E` |
+| VIRTUAL (governance) | `0x91273248119dB5050cBC278629c67258daFb25Dd` |
+| Factory | `0x50c98a7cA5167F002dD51A5f846b6F5606De276d` |
+| Marketplace | `0x3fD571Edd15C7950B99836F809146Ab0fBF3D5D5` |
+
+> Redeploy #2 — fixed `_safeMint`→`_mint` so the Factory (a contract) can mint agents.
 
 - Deployer: `0x06fd7eDeb4fbCB626357222aDC2f8Eb5a051535b`
 - USDC (Base Sepolia): `0x036CbD53842c5426634e7929541eC2318f3dCF7e`

@@ -54,6 +54,9 @@ export function Header() {
               <Network className="h-5 w-5 text-[#211100]" strokeWidth={2} />
             </div>
             <span className="hidden text-gradient sm:inline">Synapse</span>
+            <span className="ml-1 hidden rounded-full border border-[#76501d] bg-[#23170a] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-clay-400 sm:inline">
+              Base Sepolia
+            </span>
           </Link>
 
           {/* Desktop Navigation */}

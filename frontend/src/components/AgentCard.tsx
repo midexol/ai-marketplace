@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { Agent } from '@/types';
 import { formatPrice, formatNumber } from '@/utils/formatters';
 import { TrendingUp, TrendingDown } from 'lucide-react';
+import { AgentAvatar } from '@/components/AgentAvatar';
 
 interface AgentCardProps {
   agent: Agent;
@@ -43,9 +44,7 @@ export function AgentCard({
               className="h-12 w-12 rounded-xl object-cover"
             />
           ) : (
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#30200c] font-display text-xl font-semibold text-clay-400 ring-1 ring-[#76501d]">
-              {name[0]}
-            </div>
+            <AgentAvatar seed={agent.tokenAddresses?.base || agent.id} name={name} />
           )}
           <div className="min-w-0 flex-1">
             <h3 className="truncate font-display text-lg font-medium text-white transition group-hover:text-clay-400">

@@ -3,6 +3,7 @@ import { Agent } from '@/models/Agent';
 import { AgentToken } from '@/models/AgentToken';
 import { User } from '@/models/User';
 import { logger } from '@/utils/logger';
+import { ContractService } from '@/services/ContractService';
 
 const MOCK_AGENTS: Partial<Agent>[] = [
   {
@@ -98,28 +99,63 @@ export async function seedDatabase() {
     }
     logger.info(`Created ${MOCK_USERS.length} users`);
 
-    // Seed agents
-    logger.info('Seeding agents...');
+    // Seed agents. When the on-chain operator is configured, each seeded agent
+    // is minted for real via the Factory (real token seeded into the curve), so
+    // the whole marketplace is consistent and tradable. Otherwise DB-only.
+    const contractService = new ContractService();
+    const onchainEnabled = contractService.isEnabled();
+    logger.info(`Seeding agents (on-chain minting: ${onchainEnabled ? 'ON' : 'OFF'})...`);
+
+    let minted = 0;
     for (const agentData of MOCK_AGENTS) {
-      const agent = agentRepository.create(agentData);
+      const onchain = onchainEnabled
+        ? await contractService.createOnchainAgent(
+            agentData.name!,
+            agentData.description!,
+            agentData.type as string
+          )
+        : null;
+
+      const agent = agentRepository.create({
+        ...agentData,
+        // On-chain agents live on Base; DB-only keep their listed chains.
+        chains: onchain ? ['base'] : agentData.chains,
+        onchainId: onchain?.agentId,
+        tokenAddresses: onchain ? { base: onchain.tokenAddress } : {},
+      });
       const savedAgent = await agentRepository.save(agent);
 
-      // Create tokens for each chain
-      for (const chain of agentData.chains || []) {
-        const token = tokenRepository.create({
-          agentId: savedAgent.id,
-          chain,
-          contractAddress: `0x${Math.random().toString(16).slice(2, 42)}`,
-          totalSupply: '1000000000000000000000',
-          circulatingSupply: '500000000000000000000',
-          price: '1000000000000000',
-          marketCap: (BigInt(agentData.marketCap || '0') / BigInt(agentData.chains?.length || 1)).toString(),
-        });
-        await tokenRepository.save(token);
+      if (onchain) {
+        await tokenRepository.save(
+          tokenRepository.create({
+            agentId: savedAgent.id,
+            chain: 'base',
+            contractAddress: onchain.tokenAddress,
+            totalSupply: '1000000000000000000000000',
+            circulatingSupply: '1000000000000000000000000',
+            price: '0',
+            marketCap: agentData.marketCap || '0',
+          })
+        );
+        minted++;
+      } else {
+        // DB-only placeholder token (untradable; local dev only).
+        for (const chain of agentData.chains || []) {
+          await tokenRepository.save(
+            tokenRepository.create({
+              agentId: savedAgent.id,
+              chain,
+              contractAddress: '0x0000000000000000000000000000000000000000',
+              totalSupply: '0',
+              circulatingSupply: '0',
+              price: '0',
+              marketCap: '0',
+            })
+          );
+        }
       }
     }
-    logger.info(`Created ${MOCK_AGENTS.length} agents with tokens`);
-    logger.info('Database seeding completed successfully');
+    logger.info(`Seeding complete — ${MOCK_AGENTS.length} agents (${minted} minted on-chain)`);
   } catch (error) {
     logger.error('Failed to seed database:', error);
     throw error;

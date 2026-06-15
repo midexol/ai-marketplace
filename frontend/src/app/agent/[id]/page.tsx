@@ -11,6 +11,8 @@ import { TradeForm, TradeFormData } from '@/components/TradeForm';
 import { RelayPanel } from '@/components/RelayPanel';
 import { RunAgentPanel } from '@/components/RunAgentPanel';
 import { ReputationStakingPanel } from '@/components/ReputationStakingPanel';
+import { BackButton } from '@/components/BackButton';
+import { AgentAvatar } from '@/components/AgentAvatar';
 import { Spinner } from '@/components/PageHeader';
 import {
   formatPrice,
@@ -29,7 +31,8 @@ interface PageProps {
 export default function AgentDetailPage({ params }: PageProps) {
   const [showTradeForm, setShowTradeForm] = useState(false);
   const [tradeType, setTradeType] = useState<'buy' | 'sell'>('buy');
-  const [selectedChain, setSelectedChain] = useState('ethereum');
+  const [selectedChain, setSelectedChain] = useState('base');
+  const [spotPrice, setSpotPrice] = useState<string | null>(null);
 
   const userAddress = useAppStore((state) => state.userAddress);
   const { getEthersSigner } = useAuth();
@@ -48,6 +51,24 @@ export default function AgentDetailPage({ params }: PageProps) {
       setSelectedChain(activeChain);
     }
   }, [activeChain, agent, selectedChain]);
+
+  // Read the live spot price from the on-chain BondingCurve.
+  const onchainToken = agent?.tokenAddresses?.base;
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      if (!onchainToken) {
+        setSpotPrice(null);
+        return;
+      }
+      const { getSpotPriceEth } = await import('@/lib/bondingCurve');
+      const p = await getSpotPriceEth(onchainToken);
+      if (!cancelled) setSpotPrice(p);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [onchainToken]);
 
   const mockChartData = [
     { timestamp: Date.now() - 7 * 86400000, price: 0.38 },
@@ -101,14 +122,19 @@ export default function AgentDetailPage({ params }: PageProps) {
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-12">
+      <BackButton fallback="/marketplace" label="Back to marketplace" />
+
       {/* Hero */}
       <div className="animate-fade-up mb-8 flex flex-col items-start gap-6 sm:flex-row">
         {agent.avatarUrl ? (
           <img src={agent.avatarUrl} alt={agent.name} className="h-24 w-24 rounded-2xl object-cover" />
         ) : (
-          <div className="flex h-24 w-24 items-center justify-center rounded-2xl bg-gradient-to-br from-[#ffb640] via-[#ffd166] to-[#f59e1b] text-4xl font-bold text-[#211100] shadow-[0_22px_48px_-24px_rgba(255,190,76,0.95)]">
-            {(agent.name || 'Untitled Agent')[0]}
-          </div>
+          <AgentAvatar
+            seed={agent.tokenAddresses?.base || agent.id}
+            name={agent.name || 'Untitled Agent'}
+            className="h-24 w-24"
+            rounded="rounded-2xl"
+          />
         )}
         <div className="flex-1">
           <h1 className="text-4xl font-bold text-white">{agent.name}</h1>
@@ -193,7 +219,9 @@ export default function AgentDetailPage({ params }: PageProps) {
           <div className="card grid grid-cols-3 gap-4 p-6">
             <div>
               <p className="text-sm text-slate-400">Current Price</p>
-              <p className="mt-1 text-3xl font-bold text-gradient-accent">{formatPrice(price)}</p>
+              <p className="mt-1 text-3xl font-bold text-gradient-accent">
+                {spotPrice ? `${spotPrice} ETH` : onchainToken ? '…' : '—'}
+              </p>
             </div>
             <div>
               <p className="text-sm text-slate-400">24h Change</p>

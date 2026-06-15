@@ -7,6 +7,8 @@ import { useAppStore } from '@/store/useAppStore';
 import { apiClient } from '@/services/api';
 import { AgentType } from '@/types';
 import { PageHeader } from '@/components/PageHeader';
+import { BackButton } from '@/components/BackButton';
+import { CHAIN_OPTIONS } from '@/config/chains';
 import { Wallet, AlertCircle, Loader2, Sparkles, ShieldCheck } from 'lucide-react';
 
 const AGENT_TYPES: { label: string; value: AgentType }[] = [
@@ -16,7 +18,6 @@ const AGENT_TYPES: { label: string; value: AgentType }[] = [
   { label: 'Butler', value: 'butler' },
 ];
 
-const CHAINS = ['ethereum', 'polygon', 'arbitrum', 'base'];
 
 export default function CreateAgentPage() {
   const router = useRouter();
@@ -29,7 +30,7 @@ export default function CreateAgentPage() {
     name: '',
     description: '',
     type: 'writing' as AgentType,
-    chains: ['ethereum'],
+    chains: ['base'],
     allowedActions: 'run-inference, transfer',
     spendingLimit: '100',
     targetProtocols: '0x036cbd53842c5426634e7929541ec2318f3dcf7e',
@@ -86,7 +87,7 @@ export default function CreateAgentPage() {
         name: '',
         description: '',
         type: 'writing',
-        chains: ['ethereum'],
+        chains: ['base'],
         allowedActions: 'run-inference, transfer',
         spendingLimit: '100',
         targetProtocols: '0x036cbd53842c5426634e7929541ec2318f3dcf7e',
@@ -124,6 +125,7 @@ export default function CreateAgentPage() {
 
   return (
     <main className="mx-auto max-w-2xl px-4 py-12">
+      <BackButton fallback="/marketplace" label="Back to marketplace" />
       <PageHeader
         eyebrow="Create"
         title="Launch an AI Agent"
@@ -234,22 +236,28 @@ export default function CreateAgentPage() {
           <h3 className="text-md font-semibold text-white mb-2">3. Deploy & Reputation Snapshots</h3>
           <div className="space-y-4">
             <div>
-              <label className="mb-3 block text-sm font-medium text-slate-300">Deploy to Chains</label>
+              <label className="mb-3 block text-sm font-medium text-slate-300">Deploy to Chain</label>
               <div className="grid grid-cols-2 gap-3">
-                {CHAINS.map((chain) => {
-                  const active = formData.chains.includes(chain);
+                {CHAIN_OPTIONS.map((chain) => {
+                  const active = formData.chains.includes(chain.id);
                   return (
                     <button
-                      key={chain}
+                      key={chain.id}
                       type="button"
-                      onClick={() => handleChainToggle(chain)}
-                      className={`rounded-xl border px-4 py-3 font-medium capitalize transition ${
+                      disabled={!chain.enabled}
+                      onClick={() => chain.enabled && handleChainToggle(chain.id)}
+                      className={`rounded-xl border px-4 py-3 text-left font-medium transition ${
                         active
                           ? 'border-cyan-500 bg-cyan-600 text-white'
-                          : 'border-[#493113] bg-[#23170a] text-slate-300 hover:border-[#76501d]'
+                          : chain.enabled
+                          ? 'border-[#493113] bg-[#23170a] text-slate-300 hover:border-[#76501d]'
+                          : 'cursor-not-allowed border-[#2a2a2a] bg-[#1a160f] text-slate-600'
                       }`}
                     >
-                      {chain}
+                      {chain.label}
+                      {!chain.enabled && (
+                        <span className="ml-1 text-[10px] uppercase tracking-wide">· soon</span>
+                      )}
                     </button>
                   );
                 })}

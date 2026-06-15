@@ -12,20 +12,18 @@ async function main() {
     // Initialize database
     await initializeDatabase();
 
-    // Populate demo data when the database is empty (idempotent).
-    // Keeps the marketplace populated for the demo even after a fresh deploy.
-    try {
-      await seedDatabase();
-    } catch (seedError) {
-      logger.warn('Seeding skipped due to error (continuing):', seedError);
-    }
-
-    // Create and start Express app
+    // Create and start Express app — listen FIRST so the platform detects the
+    // open port immediately (seeding may take time when minting on-chain).
     const app = createApp();
 
     server = app.listen(env.PORT, () => {
       logger.info(`Server running on http://localhost:${env.PORT}`);
       logger.info(`Environment: ${env.NODE_ENV}`);
+    });
+
+    // Populate demo data in the background (idempotent; may mint on-chain).
+    seedDatabase().catch((seedError) => {
+      logger.warn('Seeding skipped due to error (continuing):', seedError);
     });
   } catch (error) {
     logger.error('Failed to start server:', error);

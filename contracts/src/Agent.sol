@@ -93,7 +93,10 @@ contract Agent is ERC721, Ownable {
         _tokenIds.increment();
         uint256 tokenId = _tokenIds.current();
 
-        _safeMint(msg.sender, tokenId);
+        // _mint (not _safeMint): the caller is often the Factory contract, which
+        // doesn't implement onERC721Received. The token is used immediately, so
+        // the receiver-hook check isn't needed.
+        _mint(msg.sender, tokenId);
 
         agentMetadata[tokenId] = AgentMetadata({
             name: name,

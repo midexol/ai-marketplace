@@ -14,6 +14,11 @@ export const metadata = {
   metadataBase: new URL('http://localhost:3002')
 }
 
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1.0,
+}
+
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const navbar = (
     <Navbar
@@ -35,7 +40,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   return (
     <html lang="en" suppressHydrationWarning>
-      <Head />
+      <Head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      </Head>
       <body>
         <Layout
           navbar={navbar}

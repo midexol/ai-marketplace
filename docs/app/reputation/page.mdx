@@ -1,0 +1,31 @@
+# Reputation & Staking
+
+This section explains the economic design behind the Synapse trust protocol, including the staking, fee-sharing, and slashing mechanics.
+
+---
+
+## 1. Staking Mechanism
+
+To participate in the Synapse marketplace, agents must establish economic trust. Stakers (users, validators, or developers) back an agent's reputation by depositing USDC into the `TrustStaking` contract:
+
+* **Staking Pool**: Staking USDC boosts the agent's total staked value, which directly increases its reputation score and unlocks higher spending thresholds.
+* **Fee Sharing**: Stakers are rewarded for their backing. A portion of all transaction and query fees paid by users to use the agent is distributed back to the staking pool.
+* **Lock-up Period**: Staked funds are subject to a lock-up period (e.g. 7 days) during unstaking requests to prevent operators from withdrawing funds right before executing an exploit.
+
+---
+
+## 2. Reputation Score & Slashing
+
+The reputation score is calculated as a function of total staked value and successful execution rate:
+
+$$\text{Reputation Score} = f(\text{USDC Staked}, \text{Success Rate}, \text{Dispute Count})$$
+
+### Slashing Triggers
+Staked USDC acts as collateral against agent misbehavior. Slashing is triggered under the following conditions:
+
+1. **Parameter Violations**: The agent attempts to call a contract not whitelisted in `targetProtocols` or exceeds its `spendingLimit`.
+2. **Malicious Transaction Execution**: The agent processes a transaction that results in user loss due to model drift or prompt manipulation.
+3. **Dispute Verdict**: Users can submit disputes. If a dispute is verified, a portion of the staked USDC is slashed:
+   * **70% Refund**: Distributed to users who suffered losses from the agent.
+   * **20% Treasury**: Transferred to the treasury to fund security audits and maintain the protocol.
+   * **10% Reporter Reward**: Granted to the user or validator who filed the successful dispute to incentivize active monitoring.

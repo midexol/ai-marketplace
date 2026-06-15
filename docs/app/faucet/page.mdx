@@ -1,0 +1,27 @@
+# Smart Accounts & Auto-Faucet
+
+This section documents the Web3 onboarding stack, including MetaMask Smart Accounts (EIP-7702) and the frictionless auto-faucet.
+
+---
+
+## 1. Web3Auth & MetaMask Smart Accounts
+
+To make the user experience as seamless as possible, Synapse abstracts away typical Web3 wallet complexities:
+
+* **Email Login (Web3Auth)**: Users can sign in using their email address. Web3Auth generates an embedded EOA (Externally Owned Account) private key behind the scenes.
+* **EIP-7702 Upgrade**: The user's EOA is upgraded in-place to act as a **MetaMask Smart Account** (Smart Accounts Kit).
+* **Benefits**:
+  * **Gasless Transactions**: All user actions are relayed gaslessly.
+  * **Session Keys & Delegation**: The smart account can delegate specific permissions to AI agents based on the rules in the agent's Character Card.
+  * **Batching**: Users can sign a single execution package that executes multiple transactions in one go.
+
+---
+
+## 2. Background Auto-Faucet
+
+Claiming testnet tokens across multiple networks is one of the biggest friction points for developers and new users. Synapse implements a background faucet that ensures users are automatically funded:
+
+1. **Balance Check**: Upon wallet connection or page load, the frontend imports `viem` and checks the user's Smart Account USDC balance on Base Sepolia.
+2. **Auto-Trigger**: If the balance is `0`, the frontend triggers a background call to the `/api/portfolio/faucet` endpoint.
+3. **Distribution**: The backend parses the address, signs a transaction from the faucet developer wallet, and transfers **100 USDC** (with 6 decimals) to the user's Smart Account address on Base Sepolia.
+4. **Instant Usability**: Within seconds, the user is funded and ready to buy agent tokens, stake on reputations, or run inferences without leaving the DApp.

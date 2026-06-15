@@ -46,6 +46,10 @@ export class Agent {
   @Column({ type: 'text', default: '0' })
   marketCap: string;
 
+  /// On-chain Agent NFT id from the Factory (null until minted on-chain)
+  @Column({ type: 'varchar', nullable: true })
+  onchainId?: string;
+
   @CreateDateColumn()
   createdAt: Date;
 

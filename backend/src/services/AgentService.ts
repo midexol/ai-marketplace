@@ -5,6 +5,7 @@ import { AgentToken } from '@/models/AgentToken';
 import { Trade } from '@/models/Trade';
 import { logger } from '@/utils/logger';
 import { AppError } from '@/middleware/errorHandler';
+import { ContractService } from '@/services/ContractService';
 
 interface CreateAgentInput {
   name: string;
@@ -25,40 +26,60 @@ export class AgentService {
   private agentRepository: Repository<Agent>;
   private agentTokenRepository: Repository<AgentToken>;
   private tradeRepository: Repository<Trade>;
+  private contractService: ContractService;
   private readonly PLACEHOLDER_TOKEN_ADDRESS = '0x0000000000000000000000000000000000000000';
+  // The contracts live on Base Sepolia; on-chain tokens are tagged to 'base'.
+  private readonly ONCHAIN_CHAIN = 'base';
 
   constructor() {
     this.agentRepository = AppDataSource.getRepository(Agent);
     this.agentTokenRepository = AppDataSource.getRepository(AgentToken);
     this.tradeRepository = AppDataSource.getRepository(Trade);
+    this.contractService = new ContractService();
   }
 
   async createAgent(input: CreateAgentInput): Promise<Agent> {
     try {
+      // Mint the real Agent NFT + AgentToken on-chain (Base Sepolia) when the
+      // operator is configured. Best-effort: if it fails or is disabled, the
+      // agent is still created in the DB (with a placeholder token).
+      const onchain = this.contractService.isEnabled()
+        ? await this.contractService.createOnchainAgent(input.name, input.description, input.type)
+        : null;
+
       const agent = this.agentRepository.create({
         ...input,
-        tokenAddresses: {},
+        onchainId: onchain?.agentId,
+        tokenAddresses: onchain
+          ? { [this.ONCHAIN_CHAIN]: onchain.tokenAddress }
+          : {},
       });
 
       const savedAgent = await this.agentRepository.save(agent);
 
-      const tokens = input.chains.map((chain) =>
-        this.agentTokenRepository.create({
+      const tokens = input.chains.map((chain) => {
+        const isOnchainChain = onchain && chain === this.ONCHAIN_CHAIN;
+        return this.agentTokenRepository.create({
           agentId: savedAgent.id,
           chain,
-          contractAddress: this.PLACEHOLDER_TOKEN_ADDRESS,
-          totalSupply: '0',
-          circulatingSupply: '0',
+          contractAddress: isOnchainChain ? onchain!.tokenAddress : this.PLACEHOLDER_TOKEN_ADDRESS,
+          // The Factory seeds the full supply into the bonding curve.
+          totalSupply: isOnchainChain ? '1000000000000000000000000' : '0',
+          circulatingSupply: isOnchainChain ? '1000000000000000000000000' : '0',
           price: '0',
           marketCap: '0',
-        })
-      );
+        });
+      });
 
       if (tokens.length > 0) {
         await this.agentTokenRepository.save(tokens);
       }
 
-      logger.info(`Agent created: ${savedAgent.id}`, { creatorAddress: input.creatorAddress });
+      logger.info(`Agent created: ${savedAgent.id}`, {
+        creatorAddress: input.creatorAddress,
+        onchainId: onchain?.agentId,
+        tokenAddress: onchain?.tokenAddress,
+      });
 
       return savedAgent;
     } catch (error) {

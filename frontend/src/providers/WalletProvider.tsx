@@ -6,6 +6,7 @@ import {
   useEffect,
   useState,
   useCallback,
+  useRef,
   ReactNode,
 } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -42,6 +43,8 @@ interface AuthContextValue {
   smartAccount: SmartAccount | null;
   /** Underlying viem signer — needed to sign EIP-7702 authorizations. */
   signerAccount: PrivateKeyAccount | null;
+  /** Build an ethers v6 Wallet on Base Sepolia for direct contract txns. */
+  getEthersSigner: () => Promise<any | null>;
   login: () => Promise<void>;
   logout: () => Promise<void>;
   /** Base64 token sent to the backend as a Bearer credential. */
@@ -70,6 +73,20 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [smartAccount, setSmartAccount] = useState<SmartAccount | null>(null);
   const [signerAccount, setSignerAccount] = useState<PrivateKeyAccount | null>(null);
+  // Held in a ref (not state) so it never lands in React DevTools / re-renders.
+  const privateKeyRef = useRef<string | null>(null);
+
+  const BASE_SEPOLIA_RPC =
+    process.env.NEXT_PUBLIC_BASE_SEPOLIA_RPC || 'https://sepolia.base.org';
+
+  /** ethers v6 Wallet on Base Sepolia, for direct BondingCurve buy/sell txns. */
+  const getEthersSigner = useCallback(async () => {
+    const pk = privateKeyRef.current;
+    if (!pk) return null;
+    const { ethers } = await import('ethers');
+    const provider = new ethers.JsonRpcProvider(BASE_SEPOLIA_RPC);
+    return new ethers.Wallet(pk.startsWith('0x') ? pk : `0x${pk}`, provider);
+  }, [BASE_SEPOLIA_RPC]);
 
   // Initialize the SDK on mount (client-side only).
   useEffect(() => {
@@ -159,6 +176,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       // Wrap the embedded-wallet key in a MetaMask Smart Account.
       try {
         const privateKey: string = await provider.request({ method: 'eth_private_key' });
+        privateKeyRef.current = privateKey; // for direct ethers txns (buy/sell)
         const { smartAccount: sa, account } = await createSmartAccount(privateKey);
         setSmartAccount(sa);
         setSignerAccount(account);
@@ -221,6 +239,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     setUser(null);
     setSmartAccount(null);
     setSignerAccount(null);
+    privateKeyRef.current = null;
   }, [web3auth]);
 
   const getToken = useCallback(() => (user ? encodeToken(user) : null), [user]);
@@ -231,6 +250,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     user,
     smartAccount,
     signerAccount,
+    getEthersSigner,
     login,
     logout,
     getToken,

@@ -28,10 +28,20 @@ const envSchema = z.object({
   // CORS
   CORS_ORIGIN: z.string().default('http://localhost:3000'),
 
-  // Contract Addresses (will be set during deployment)
+  // Contract Addresses (Base Sepolia deployment)
   AGENT_CONTRACT_ADDRESS: z.string().optional(),
+  AGENT_TOKEN_ADDRESS: z.string().optional(),
+  BONDING_CURVE_ADDRESS: z.string().optional(),
+  VIRTUAL_ADDRESS: z.string().optional(),
+  FACTORY_ADDRESS: z.string().optional(),
   MARKETPLACE_CONTRACT_ADDRESS: z.string().optional(),
   GOVERNANCE_CONTRACT_ADDRESS: z.string().optional(),
+
+  // On-chain operator — backend wallet that mints agents via the Factory.
+  // Reuse your funded Base Sepolia deployer key. If unset, on-chain minting is
+  // skipped and agents stay DB-only.
+  OPERATOR_PRIVATE_KEY: z.string().optional(),
+  BASE_SEPOLIA_RPC: z.string().default('https://sepolia.base.org'),
 });
 
 export const env = envSchema.parse(process.env);

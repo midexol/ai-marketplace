@@ -5,6 +5,7 @@ import { useAgent } from '@/hooks/useAgent';
 import { useTrades, useMarketPrice } from '@/hooks/useMarketplace';
 import { usePortfolio } from '@/hooks/usePortfolio';
 import { useAppStore } from '@/store/useAppStore';
+import { useAuth } from '@/providers/WalletProvider';
 import { PriceChart } from '@/components/PriceChart';
 import { TradeForm, TradeFormData } from '@/components/TradeForm';
 import { RelayPanel } from '@/components/RelayPanel';
@@ -31,6 +32,7 @@ export default function AgentDetailPage({ params }: PageProps) {
   const [selectedChain, setSelectedChain] = useState('ethereum');
 
   const userAddress = useAppStore((state) => state.userAddress);
+  const { getEthersSigner } = useAuth();
   const { data: agent, isLoading: agentLoading, error: agentError } = useAgent(params.id);
   const { data: trades, isLoading: tradesLoading } = useTrades(params.id);
   const { data: priceData } = useMarketPrice(params.id, selectedChain);
@@ -59,8 +61,23 @@ export default function AgentDetailPage({ params }: PageProps) {
   ];
 
   const handleTradeSubmit = async (data: TradeFormData) => {
-    console.log('Trade submitted:', { ...data, agentId: params.id, chain: selectedChain });
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    // Real on-chain trade against the deployed BondingCurve (Base Sepolia).
+    const tokenAddress = agent?.tokenAddresses?.base;
+    if (!tokenAddress || tokenAddress === '0x0000000000000000000000000000000000000000') {
+      throw new Error('This agent has no on-chain token yet — trading unavailable.');
+    }
+    const signer = await getEthersSigner();
+    if (!signer) throw new Error('Wallet not ready. Sign in and try again.');
+
+    const amountTokens = parseFloat(data.amount);
+    if (!amountTokens || amountTokens <= 0) throw new Error('Enter a valid amount.');
+
+    const { buyTokens, sellTokens } = await import('@/lib/bondingCurve');
+    if (data.type === 'buy') {
+      await buyTokens({ signer, token: tokenAddress, amountTokens });
+    } else {
+      await sellTokens({ signer, token: tokenAddress, amountTokens });
+    }
     setShowTradeForm(false);
   };
 

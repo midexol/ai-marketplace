@@ -96,8 +96,12 @@ export function WalletMenu() {
           </div>
 
           <div className="space-y-2">
-            {sa && <AddressRow label="MetaMask Smart Account" address={sa} />}
-            <AddressRow label="Signer (embedded)" address={user.address} />
+            {/* With EIP-7702 the smart account IS the EOA (upgraded in place),
+                so there's a single address — no need to show it twice. */}
+            <AddressRow
+              label={sa ? 'Smart Account · EIP-7702' : 'Embedded wallet'}
+              address={sa || user.address}
+            />
           </div>
 
           <div className="mt-3 flex items-center gap-2 rounded-lg border border-[#493113] bg-[#130f08] px-3 py-2 text-xs text-slate-400">

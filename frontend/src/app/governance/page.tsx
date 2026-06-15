@@ -1,43 +1,55 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAppStore } from '@/store/useAppStore';
 import { apiClient } from '@/services/api';
 import { shortenAddress, formatNumber } from '@/utils/formatters';
 import { PageHeader, Spinner } from '@/components/PageHeader';
-import { Vote, Lock, FileText } from 'lucide-react';
+import { Vote, Lock, FileText, Gauge, Check, X, Loader2, AlertCircle } from 'lucide-react';
+
+interface Proposal {
+  id: string;
+  title: string;
+  description: string;
+  status: string;
+  proposer: string;
+  forVotes: string | number;
+  againstVotes: string | number;
+  abstainVotes: string | number;
+}
 
 export default function GovernancePage() {
   const userAddress = useAppStore((state) => state.userAddress);
-  const [proposals, setProposals] = useState<any[]>([]);
+  const [proposals, setProposals] = useState<Proposal[]>([]);
   const [votingPower, setVotingPower] = useState({ power: '0', veVIRTUAL: '0' });
   const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      setIsLoading(true);
-      try {
-        const [proposalsData, votingData] = await Promise.all([
-          apiClient.getGovernanceProposals(),
-          userAddress
-            ? apiClient.getVotingPower(userAddress)
-            : Promise.resolve({ power: '0', veVIRTUAL: '0' }),
-        ]);
-        setProposals(proposalsData.data || []);
-        setVotingPower(votingData);
-      } catch (err) {
-        console.error('Failed to fetch governance data:', err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchData();
+  const fetchData = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const [proposalsData, votingData] = await Promise.all([
+        apiClient.getGovernanceProposals(),
+        userAddress
+          ? apiClient.getVotingPower(userAddress)
+          : Promise.resolve({ power: '0', veVIRTUAL: '0' }),
+      ]);
+      setProposals(Array.isArray(proposalsData?.data) ? proposalsData.data : []);
+      setVotingPower({
+        power: votingData?.power ?? '0',
+        veVIRTUAL: votingData?.veVIRTUAL ?? '0',
+      });
+    } catch (err) {
+      console.error('Failed to fetch governance data:', err);
+    } finally {
+      setIsLoading(false);
+    }
   }, [userAddress]);
 
-  const statusStyles: Record<string, string> = {
-    active: 'bg-emerald-500/15 text-emerald-300 ring-emerald-500/30',
-    voting: 'bg-blue-500/15 text-blue-300 ring-blue-500/30',
-  };
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  const activeCount = proposals.filter((p) => p.status === 'active' || p.status === 'voting').length;
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-12">
@@ -47,25 +59,13 @@ export default function GovernancePage() {
         subtitle="Stake, vote, and participate in protocol decisions."
       />
 
-      {/* Voting Power */}
-      {userAddress && (
-        <div className="mb-10 grid grid-cols-1 gap-5 sm:grid-cols-2">
-          <div className="card p-6">
-            <div className="mb-3 flex items-center gap-2 text-slate-400">
-              <Vote className="h-4 w-4" />
-              <span className="text-sm">Voting Power</span>
-            </div>
-            <h2 className="text-3xl font-bold text-white">{formatNumber(votingPower.power)}</h2>
-          </div>
-          <div className="card p-6">
-            <div className="mb-3 flex items-center gap-2 text-slate-400">
-              <Lock className="h-4 w-4" />
-              <span className="text-sm">veVIRTUAL Staked</span>
-            </div>
-            <h2 className="text-3xl font-bold text-white">{formatNumber(votingPower.veVIRTUAL)}</h2>
-          </div>
-        </div>
-      )}
+      {/* Stats */}
+      <div className="mb-10 grid grid-cols-2 gap-4 sm:grid-cols-4">
+        <StatCard icon={FileText} label="Proposals" value={formatNumber(proposals.length)} />
+        <StatCard icon={Gauge} label="Active" value={formatNumber(activeCount)} />
+        <StatCard icon={Vote} label="Voting Power" value={formatNumber(votingPower.power)} />
+        <StatCard icon={Lock} label="veVIRTUAL" value={formatNumber(votingPower.veVIRTUAL)} />
+      </div>
 
       <h2 className="mb-5 text-xl font-semibold text-white">Active Proposals</h2>
 
@@ -73,37 +73,13 @@ export default function GovernancePage() {
         <Spinner />
       ) : proposals.length > 0 ? (
         <div className="space-y-4">
-          {proposals.map((proposal: any) => (
-            <div key={proposal.id} className="card card-hover p-6">
-              <div className="mb-5 flex items-start justify-between gap-4">
-                <div>
-                  <h3 className="text-lg font-semibold text-white">{proposal.title}</h3>
-                  <p className="mt-1 text-sm text-slate-400">{proposal.description}</p>
-                </div>
-                <span
-                  className={`shrink-0 rounded-full px-3 py-1 text-xs font-medium capitalize ring-1 ${
-                    statusStyles[proposal.status] || 'bg-[#30200c] text-slate-300 ring-[#493113]'
-                  }`}
-                >
-                  {proposal.status}
-                </span>
-              </div>
-
-              <div className="space-y-3">
-                <VoteBar label="For" value={formatNumber(proposal.forVotes)} pct={60} color="bg-emerald-500" textColor="text-emerald-400" />
-                <VoteBar label="Against" value={formatNumber(proposal.againstVotes)} pct={30} color="bg-red-500" textColor="text-red-400" />
-                <VoteBar label="Abstain" value={formatNumber(proposal.abstainVotes)} pct={10} color="bg-slate-500" textColor="text-slate-400" />
-              </div>
-
-              <div className="mt-5 flex items-center justify-between border-t border-[#493113] pt-4 text-sm text-slate-400">
-                <span>Proposed by {shortenAddress(proposal.proposer)}</span>
-                {userAddress && (
-                  <button className="btn-primary px-4 py-2 text-sm">
-                    <Vote className="h-4 w-4" /> Vote
-                  </button>
-                )}
-              </div>
-            </div>
+          {proposals.map((p) => (
+            <ProposalCard
+              key={p.id}
+              proposal={p}
+              canVote={!!userAddress}
+              onVoted={fetchData}
+            />
           ))}
         </div>
       ) : (
@@ -115,6 +91,127 @@ export default function GovernancePage() {
         </div>
       )}
     </main>
+  );
+}
+
+function StatCard({
+  icon: Icon,
+  label,
+  value,
+}: {
+  icon: typeof Vote;
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="card p-5">
+      <div className="mb-2 flex items-center gap-2 text-slate-400">
+        <Icon className="h-4 w-4" />
+        <span className="text-xs">{label}</span>
+      </div>
+      <p className="text-2xl font-bold text-white">{value}</p>
+    </div>
+  );
+}
+
+function ProposalCard({
+  proposal,
+  canVote,
+  onVoted,
+}: {
+  proposal: Proposal;
+  canVote: boolean;
+  onVoted: () => void;
+}) {
+  const [voting, setVoting] = useState<'for' | 'against' | null>(null);
+  const [voted, setVoted] = useState<'for' | 'against' | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  // Real tallies — computed from the actual vote counts, not hardcoded.
+  const forV = Number(proposal.forVotes) || 0;
+  const againstV = Number(proposal.againstVotes) || 0;
+  const abstainV = Number(proposal.abstainVotes) || 0;
+  const total = forV + againstV + abstainV;
+  const pct = (n: number) => (total > 0 ? Math.round((n / total) * 100) : 0);
+
+  const statusStyles: Record<string, string> = {
+    active: 'bg-emerald-500/15 text-emerald-300 ring-emerald-500/30',
+    voting: 'bg-blue-500/15 text-blue-300 ring-blue-500/30',
+  };
+
+  const handleVote = async (type: 'for' | 'against') => {
+    setError(null);
+    setVoting(type);
+    try {
+      await apiClient.voteOnProposal(proposal.id, type);
+      setVoted(type);
+      onVoted();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Vote failed');
+    } finally {
+      setVoting(null);
+    }
+  };
+
+  return (
+    <div className="card card-hover p-6">
+      <div className="mb-5 flex items-start justify-between gap-4">
+        <div>
+          <h3 className="text-lg font-semibold text-white">{proposal.title}</h3>
+          <p className="mt-1 text-sm text-slate-400">{proposal.description}</p>
+        </div>
+        <span
+          className={`shrink-0 rounded-full px-3 py-1 text-xs font-medium capitalize ring-1 ${
+            statusStyles[proposal.status] || 'bg-[#30200c] text-slate-300 ring-[#493113]'
+          }`}
+        >
+          {proposal.status}
+        </span>
+      </div>
+
+      <div className="space-y-3">
+        <VoteBar label="For" value={formatNumber(forV)} pct={pct(forV)} color="bg-emerald-500" textColor="text-emerald-400" />
+        <VoteBar label="Against" value={formatNumber(againstV)} pct={pct(againstV)} color="bg-red-500" textColor="text-red-400" />
+        <VoteBar label="Abstain" value={formatNumber(abstainV)} pct={pct(abstainV)} color="bg-slate-500" textColor="text-slate-400" />
+      </div>
+
+      <p className="mt-3 text-xs text-slate-500">{formatNumber(total)} total votes</p>
+
+      {error && (
+        <div className="mt-3 flex items-center gap-2 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-200">
+          <AlertCircle className="h-3.5 w-3.5 shrink-0" /> {error}
+        </div>
+      )}
+
+      <div className="mt-5 flex items-center justify-between border-t border-[#493113] pt-4 text-sm text-slate-400">
+        <span>Proposed by {shortenAddress(proposal.proposer)}</span>
+        {canVote &&
+          (voted ? (
+            <span className="flex items-center gap-1.5 text-emerald-400">
+              <Check className="h-4 w-4" /> Voted {voted}
+            </span>
+          ) : (
+            <div className="flex gap-2">
+              <button
+                onClick={() => handleVote('for')}
+                disabled={voting !== null}
+                className="btn-primary px-4 py-2 text-sm"
+              >
+                {voting === 'for' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+                For
+              </button>
+              <button
+                onClick={() => handleVote('against')}
+                disabled={voting !== null}
+                className="flex items-center gap-1.5 rounded-md border border-[#76501d] bg-[#23170a] px-4 py-2 text-sm font-medium text-slate-200 transition hover:bg-[#30200c] disabled:opacity-50"
+              >
+                {voting === 'against' ? <Loader2 className="h-4 w-4 animate-spin" /> : <X className="h-4 w-4" />}
+                Against
+              </button>
+            </div>
+          ))}
+      </div>
+    </div>
   );
 }
 
@@ -140,7 +237,7 @@ function VoteBar({
         <span className="text-slate-500">{pct}%</span>
       </div>
       <div className="h-2 w-full overflow-hidden rounded-full bg-[#30200c]">
-        <div className={`h-2 rounded-full ${color}`} style={{ width: `${pct}%` }} />
+        <div className={`h-2 rounded-full transition-all ${color}`} style={{ width: `${pct}%` }} />
       </div>
     </div>
   );

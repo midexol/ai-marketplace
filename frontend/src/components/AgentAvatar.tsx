@@ -1,7 +1,11 @@
+'use client';
+
+import { useState } from 'react';
+
 /**
- * Deterministic generated avatar — a unique gradient + initial derived from a
- * seed (agent id / token address / name). No uploads, no IPFS, no Pinata:
- * the same seed always renders the same avatar, fully offline.
+ * Deterministic agent avatar — a real illustrated image from DiceBear (free,
+ * no API key, no uploads/Pinata). The same seed always yields the same avatar.
+ * Falls back to a generated gradient + initial if the image fails to load.
  */
 
 function hashString(s: string): number {
@@ -9,6 +13,9 @@ function hashString(s: string): number {
   for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
   return h;
 }
+
+// "bottts-neutral" = clean robot/agent characters; fits an AI-agent marketplace.
+const DICEBEAR_STYLE = 'bottts-neutral';
 
 interface AgentAvatarProps {
   seed: string;
@@ -24,30 +31,35 @@ export function AgentAvatar({
   className = 'h-12 w-12',
   rounded = 'rounded-xl',
 }: AgentAvatarProps) {
-  const h = hashString(seed || name || 'agent');
-  const hue1 = h % 360;
-  const hue2 = (hue1 + 35 + (h % 70)) % 360;
-  const hue3 = (hue1 + 180 + (h % 40)) % 360;
-  const angle = h % 360;
-  const initial = (name.trim()[0] || 'A').toUpperCase();
+  const [failed, setFailed] = useState(false);
+  const key = encodeURIComponent(seed || name || 'agent');
+  const url = `https://api.dicebear.com/9.x/${DICEBEAR_STYLE}/svg?seed=${key}&radius=8&backgroundColor=23170a,30200c,1b1308`;
+
+  if (failed) {
+    // Gradient fallback (offline-safe).
+    const h = hashString(seed || name || 'agent');
+    const hue1 = h % 360;
+    const hue2 = (hue1 + 40 + (h % 60)) % 360;
+    const initial = (name.trim()[0] || 'A').toUpperCase();
+    return (
+      <div
+        className={`flex items-center justify-center ${rounded} ${className} font-display font-bold text-white`}
+        style={{ backgroundImage: `linear-gradient(135deg, hsl(${hue1} 65% 42%), hsl(${hue2} 70% 30%))` }}
+        aria-hidden
+      >
+        <span className="text-[length:48%]">{initial}</span>
+      </div>
+    );
+  }
 
   return (
-    <div
-      className={`relative flex items-center justify-center overflow-hidden ${rounded} ${className} font-display font-bold text-white`}
-      style={{
-        backgroundImage: [
-          `radial-gradient(circle at 25% 20%, hsl(${hue3} 80% 60% / 0.9), transparent 55%)`,
-          `radial-gradient(circle at 80% 80%, hsl(${hue2} 85% 45% / 0.95), transparent 60%)`,
-          `linear-gradient(${angle}deg, hsl(${hue1} 70% 42%), hsl(${hue2} 72% 32%))`,
-        ].join(', '),
-      }}
-      aria-hidden
-    >
-      {/* subtle grain/sheen */}
-      <div className="absolute inset-0 opacity-20 [background-image:radial-gradient(circle_at_1px_1px,#fff_1px,transparent_0)] [background-size:8px_8px]" />
-      <span className="relative text-[length:48%] drop-shadow-[0_1px_2px_rgba(0,0,0,0.4)]">
-        {initial}
-      </span>
-    </div>
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={url}
+      alt={name || 'agent avatar'}
+      className={`${rounded} ${className} bg-[#23170a] object-cover`}
+      onError={() => setFailed(true)}
+      loading="lazy"
+    />
   );
 }

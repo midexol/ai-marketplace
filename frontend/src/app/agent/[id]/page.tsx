@@ -22,7 +22,7 @@ import {
   shortenAddress,
 } from '@/utils/formatters';
 import { Trade } from '@/types';
-import { AlertCircle, TrendingUp, TrendingDown, Wallet, Bot, Sparkles } from 'lucide-react';
+import { AlertCircle, TrendingUp, TrendingDown, Wallet, Bot, Sparkles, BadgeCheck } from 'lucide-react';
 
 interface PageProps {
   params: { id: string };
@@ -124,30 +124,54 @@ export default function AgentDetailPage({ params }: PageProps) {
     <main className="mx-auto max-w-6xl px-4 py-12">
       <BackButton fallback="/marketplace" label="Back to marketplace" />
 
-      {/* Hero */}
-      <div className="animate-fade-up mb-8 flex flex-col items-start gap-6 sm:flex-row">
-        {agent.avatarUrl ? (
-          <img src={agent.avatarUrl} alt={agent.name} className="h-24 w-24 rounded-2xl object-cover" />
-        ) : (
-          <AgentAvatar
-            seed={agent.tokenAddresses?.base || agent.id}
-            name={agent.name || 'Untitled Agent'}
-            className="h-24 w-24"
-            rounded="rounded-2xl"
-          />
-        )}
-        <div className="flex-1">
-          <h1 className="text-4xl font-bold text-white">{agent.name}</h1>
-          <p className="mt-2 max-w-2xl text-slate-400">{agent.description}</p>
-          <div className="mt-4 flex flex-wrap items-center gap-3">
-            <span className="chip capitalize text-cyan-300">{agent.type || 'writing'}</span>
-            <span className="text-sm text-slate-500">
-              by {shortenAddress(agent.creatorAddress)}
-            </span>
-            <span className="text-sm text-slate-500">{formatDate(agent.createdAt)}</span>
+      {/* Hero — banner card matching the marketplace cards */}
+      {(() => {
+        const seed = agent.tokenAddresses?.base || agent.id;
+        let hh = 0;
+        for (let i = 0; i < seed.length; i++) hh = (hh * 31 + seed.charCodeAt(i)) >>> 0;
+        const hue = hh % 360;
+        const onChain =
+          !!agent.tokenAddresses?.base &&
+          agent.tokenAddresses.base !== '0x0000000000000000000000000000000000000000';
+        return (
+          <div className="card animate-fade-up mb-8 overflow-hidden p-0">
+            {/* Cover banner */}
+            <div
+              className="relative h-28"
+              style={{
+                backgroundImage: `linear-gradient(120deg, hsl(${hue} 65% 30%), hsl(${(hue + 50) % 360} 60% 18%))`,
+              }}
+            >
+              <div className="absolute inset-0 opacity-[0.15] [background-image:radial-gradient(circle_at_1px_1px,#fff_1px,transparent_0)] [background-size:14px_14px]" />
+              {onChain && (
+                <span className="absolute right-4 top-4 inline-flex items-center gap-1 rounded-full bg-emerald-500/15 px-2.5 py-1 text-[11px] font-medium text-emerald-300 ring-1 ring-emerald-500/30 backdrop-blur-sm">
+                  <BadgeCheck className="h-3.5 w-3.5" />
+                  On-chain
+                </span>
+              )}
+            </div>
+
+            <div className="px-6 pb-6 sm:px-8">
+              <div className="-mt-12 mb-4 flex items-end gap-5">
+                <div className="shrink-0 rounded-2xl ring-4 ring-[#23170a]">
+                  {agent.avatarUrl ? (
+                    <img src={agent.avatarUrl} alt={agent.name} className="h-24 w-24 rounded-2xl object-cover" />
+                  ) : (
+                    <AgentAvatar seed={seed} name={agent.name || 'Untitled Agent'} className="h-24 w-24" rounded="rounded-2xl" />
+                  )}
+                </div>
+              </div>
+              <h1 className="text-3xl font-bold text-white md:text-4xl">{agent.name}</h1>
+              <p className="mt-2 max-w-2xl text-slate-400">{agent.description}</p>
+              <div className="mt-4 flex flex-wrap items-center gap-3">
+                <span className="chip capitalize text-cyan-300">{agent.type || 'writing'}</span>
+                <span className="text-sm text-slate-500">by {shortenAddress(agent.creatorAddress)}</span>
+                <span className="text-sm text-slate-500">{formatDate(agent.createdAt)}</span>
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
+        );
+      })()}
 
       <div className="mb-8 grid grid-cols-1 gap-8 lg:grid-cols-3">
         {/* Left */}

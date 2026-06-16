@@ -1,8 +1,6 @@
 'use client';
 
-import { useState } from 'react';
-import { formatPrice } from '@/utils/formatters';
-import { isValidTradeAmount } from '@/utils/validators';
+import { useState, useEffect } from 'react';
 
 export interface TradeFormData {
   amount: string;
@@ -13,13 +11,21 @@ export interface TradeFormData {
 
 interface TradeFormProps {
   agentName: string;
+  /** Spot price per 1 token, in ETH (decimal string). */
   currentPrice: string;
+  /** User's token balance (whole tokens, decimal string). */
   userBalance: string;
   onSubmit: (data: TradeFormData) => Promise<void>;
   isLoading?: boolean;
   error?: string | null;
   onCancel?: () => void;
   tradeType?: 'buy' | 'sell';
+}
+
+/** Plain decimal ETH formatter (these are ETH amounts, NOT wei). */
+function fmtEth(n: number): string {
+  if (!Number.isFinite(n) || n === 0) return '0.00';
+  return n.toLocaleString('en-US', { minimumFractionDigits: n < 1 ? 4 : 2, maximumFractionDigits: 6 });
 }
 
 export function TradeForm({
@@ -36,24 +42,19 @@ export function TradeForm({
   const [selectedType, setSelectedType] = useState<'buy' | 'sell'>(tradeType);
   const [formError, setFormError] = useState<string | null>(null);
 
-  const priceNum = parseFloat(currentPrice) || 0;
-  const amountNum = parseFloat(amount) || 0;
-  const total = (priceNum * amountNum).toFixed(6);
+  // Sync when the parent flips Buy/Sell (was the "stuck" bug).
+  useEffect(() => {
+    setSelectedType(tradeType);
+  }, [tradeType]);
 
-  const balanceNum = parseFloat(userBalance) || 0;
-  const maxAmount =
-    selectedType === 'buy'
-      ? priceNum > 0 ? (balanceNum / priceNum).toFixed(6) : '0'
-      : userBalance;
+  const pricePerToken = parseFloat(currentPrice) || 0; // ETH per token
+  const amountNum = parseFloat(amount) || 0; // tokens
+  const balanceNum = parseFloat(userBalance) || 0; // token balance
+  const totalEth = pricePerToken * amountNum; // ETH cost/proceeds
 
-  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setAmount(value);
-    setFormError(null);
-  };
-
-  const handleMaxClick = () => {
-    setAmount(maxAmount);
+  const switchTo = (t: 'buy' | 'sell') => {
+    setSelectedType(t);
+    setAmount('');
     setFormError(null);
   };
 
@@ -61,165 +62,144 @@ export function TradeForm({
     e.preventDefault();
     setFormError(null);
 
-    if (!amount) {
-      setFormError('Please enter an amount');
+    if (!amountNum || amountNum <= 0) {
+      setFormError('Enter an amount');
       return;
     }
-
-    if (!isValidTradeAmount(amount, maxAmount)) {
-      setFormError(
-        `Amount exceeds available ${selectedType === 'buy' ? 'balance' : 'holdings'}`
-      );
+    if (selectedType === 'sell' && amountNum > balanceNum) {
+      setFormError(`You only hold ${fmtEth(balanceNum)} ${agentName}`);
       return;
     }
 
     try {
-      await onSubmit({
-        amount,
-        price: currentPrice,
-        total,
-        type: selectedType,
-      });
+      await onSubmit({ amount, price: currentPrice, total: String(totalEth), type: selectedType });
       setAmount('');
     } catch (err) {
       setFormError(err instanceof Error ? err.message : 'Trade failed');
     }
   };
 
+  const isBuy = selectedType === 'buy';
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      {/* Trade Type Selector */}
-      <div className="flex gap-2 p-1 bg-slate-700/50 rounded-lg">
+      {/* Buy / Sell toggle */}
+      <div className="flex gap-1 rounded-lg bg-[#130f08] p-1">
         <button
           type="button"
-          onClick={() => {
-            setSelectedType('buy');
-            setAmount('');
-            setFormError(null);
-          }}
-          className={`flex-1 py-2 px-3 rounded font-medium transition ${
-            selectedType === 'buy'
-              ? 'bg-cyan-600 text-white'
-              : 'bg-transparent text-slate-400 hover:text-slate-200'
+          onClick={() => switchTo('buy')}
+          className={`flex-1 rounded-md py-2 text-sm font-semibold transition ${
+            isBuy ? 'bg-emerald-600 text-white' : 'text-slate-400 hover:text-white'
           }`}
         >
           Buy
         </button>
         <button
           type="button"
-          onClick={() => {
-            setSelectedType('sell');
-            setAmount('');
-            setFormError(null);
-          }}
-          className={`flex-1 py-2 px-3 rounded font-medium transition ${
-            selectedType === 'sell'
-              ? 'bg-red-600 text-white'
-              : 'bg-transparent text-slate-400 hover:text-slate-200'
+          onClick={() => switchTo('sell')}
+          className={`flex-1 rounded-md py-2 text-sm font-semibold transition ${
+            !isBuy ? 'bg-red-600 text-white' : 'text-slate-400 hover:text-white'
           }`}
         >
           Sell
         </button>
       </div>
 
-      {/* Price Display */}
-      <div className="bg-slate-800/50 rounded-lg p-4">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-sm text-slate-400">Current Price</span>
-          <span className="text-lg font-semibold text-cyan-400">
-            {formatPrice(currentPrice)}
-          </span>
-        </div>
+      {/* Rate */}
+      <div className="flex items-center justify-between rounded-lg border border-[#493113] bg-[#130f08] px-4 py-3 text-sm">
+        <span className="text-slate-400">Rate</span>
+        <span className="font-mono text-clay-400">
+          1 {agentName} = {fmtEth(pricePerToken)} ETH
+        </span>
       </div>
 
-      {/* Amount Input */}
+      {/* Amount input */}
       <div>
-        <label className="block text-sm font-medium text-slate-300 mb-2">
-          Amount ({agentName} tokens)
-        </label>
+        <div className="mb-1 flex items-center justify-between">
+          <label className="text-sm font-medium text-slate-300">Amount ({agentName})</label>
+          {!isBuy && (
+            <span className="text-xs text-slate-500">
+              Balance: {fmtEth(balanceNum)}
+            </span>
+          )}
+        </div>
         <div className="relative">
           <input
             type="number"
             value={amount}
-            onChange={handleAmountChange}
+            onChange={(e) => {
+              setAmount(e.target.value);
+              setFormError(null);
+            }}
             placeholder="0.00"
-            step="0.0001"
+            step="0.01"
             min="0"
-            className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500"
+            className="w-full rounded-lg border border-[#493113] bg-[#130f08] px-4 py-3 font-mono text-white placeholder-slate-500 focus:border-clay-600 focus:outline-none"
           />
-          <button
-            type="button"
-            onClick={handleMaxClick}
-            className="absolute right-3 top-1/2 -translate-y-1/2 px-2 py-1 text-xs font-medium text-cyan-400 hover:text-cyan-300 transition"
-          >
-            Max
-          </button>
-        </div>
-        <div className="mt-1 flex items-center justify-between">
-          <p className="text-xs text-slate-500">
-            Available: {maxAmount} {agentName}
-          </p>
-          <p className="text-xs text-slate-500">
-            Max: {maxAmount}
-          </p>
+          {!isBuy && balanceNum > 0 && (
+            <button
+              type="button"
+              onClick={() => setAmount(String(balanceNum))}
+              className="absolute right-3 top-1/2 -translate-y-1/2 rounded px-2 py-1 text-xs font-medium text-clay-400 hover:text-clay-300"
+            >
+              Max
+            </button>
+          )}
         </div>
       </div>
 
-      {/* Total */}
-      <div className="bg-slate-800/50 rounded-lg p-4">
+      {/* Conversion summary — the DEX "you pay / you receive" */}
+      <div className="space-y-2 rounded-lg border border-[#493113] bg-[#130f08] px-4 py-3 text-sm">
         <div className="flex items-center justify-between">
-          <span className="text-sm text-slate-400">
-            Total {selectedType === 'buy' ? 'Cost' : 'Proceeds'}
-          </span>
-          <span className="text-lg font-semibold text-white">
-            {formatPrice(total)}
+          <span className="text-slate-400">{isBuy ? 'You pay' : 'You receive'}</span>
+          <span className="font-mono font-semibold text-white">{fmtEth(totalEth)} ETH</span>
+        </div>
+        <div className="flex items-center justify-between">
+          <span className="text-slate-400">{isBuy ? 'You receive' : 'You sell'}</span>
+          <span className="font-mono text-slate-300">
+            {amountNum ? fmtEth(amountNum) : '0.00'} {agentName}
           </span>
         </div>
       </div>
 
-      {/* Error Message */}
       {(formError || error) && (
-        <div className="bg-red-500/10 border border-red-500/50 rounded-lg p-3">
-          <p className="text-sm text-red-400">{formError || error}</p>
+        <div className="rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-2">
+          <p className="text-sm text-red-300">{formError || error}</p>
         </div>
       )}
 
-      {/* Submit Buttons */}
-      <div className="flex gap-3 pt-4">
+      <div className="flex gap-3 pt-1">
         <button
           type="submit"
-          disabled={isLoading || !amount}
-          className={`flex-1 py-3 px-4 rounded-lg font-semibold text-white transition disabled:opacity-50 disabled:cursor-not-allowed ${
-            selectedType === 'buy'
-              ? 'bg-cyan-600 hover:bg-cyan-700'
-              : 'bg-red-600 hover:bg-red-700'
+          disabled={isLoading || !amountNum}
+          className={`flex-1 rounded-lg py-3 font-semibold text-white transition disabled:cursor-not-allowed disabled:opacity-50 ${
+            isBuy ? 'bg-emerald-600 hover:bg-emerald-500' : 'bg-red-600 hover:bg-red-500'
           }`}
         >
           {isLoading ? (
             <span className="flex items-center justify-center gap-2">
-              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              Processing...
+              <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+              Processing…
             </span>
           ) : (
-            `${selectedType === 'buy' ? 'Buy' : 'Sell'} ${amount ? amount + ' ' : ''}${agentName}`
+            `${isBuy ? 'Buy' : 'Sell'} ${agentName}`
           )}
         </button>
         {onCancel && (
           <button
             type="button"
             onClick={onCancel}
-            className="px-6 py-3 bg-slate-700 hover:bg-slate-600 rounded-lg font-semibold text-white transition"
+            className="rounded-lg bg-[#23170a] px-6 py-3 font-semibold text-white transition hover:bg-[#30200c]"
           >
             Cancel
           </button>
         )}
       </div>
 
-      {/* Info Message */}
-      <p className="text-xs text-slate-500 text-center">
-        {selectedType === 'buy'
-          ? 'You will receive the tokens after confirmation'
-          : 'You will receive payment after confirmation'}
+      <p className="text-center text-xs text-slate-500">
+        {isBuy
+          ? 'Tokens are dispensed from the bonding curve after confirmation.'
+          : 'ETH proceeds are sent after confirmation.'}
       </p>
     </form>
   );

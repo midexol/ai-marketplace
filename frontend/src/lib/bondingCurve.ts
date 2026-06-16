@@ -19,7 +19,24 @@ const CURVE_ABI = [
   'function sell(address token, uint256 amount)',
 ];
 
-const ERC20_ABI = ['function approve(address spender, uint256 amount) returns (bool)'];
+const ERC20_ABI = [
+  'function approve(address spender, uint256 amount) returns (bool)',
+  'function balanceOf(address owner) view returns (uint256)',
+];
+
+/** A holder's token balance (whole tokens, formatted). 0 for DB-only agents. */
+export async function getTokenBalance(token: string | undefined, owner: string): Promise<string> {
+  if (!token || token === '0x0000000000000000000000000000000000000000' || !owner) return '0';
+  try {
+    const { ethers } = await import('ethers');
+    const provider = new ethers.JsonRpcProvider(RPC);
+    const erc20 = new ethers.Contract(token, ERC20_ABI, provider);
+    const bal: bigint = await erc20.balanceOf(owner);
+    return ethers.formatUnits(bal, 18);
+  } catch {
+    return '0';
+  }
+}
 
 /** Turn a raw ethers/contract error into a short, human-readable message. */
 export function humanizeTradeError(err: unknown): string {

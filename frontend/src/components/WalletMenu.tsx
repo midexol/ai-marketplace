@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import Link from 'next/link';
 import { useAuth } from '@/providers/WalletProvider';
 import { shortenAddress } from '@/utils/formatters';
 import {
@@ -12,6 +13,7 @@ import {
   Droplets,
   ShieldCheck,
   ChevronDown,
+  UserRound,
 } from 'lucide-react';
 
 const EXPLORER = 'https://sepolia.basescan.org/address/';
@@ -109,11 +111,19 @@ export function WalletMenu() {
             Network: <span className="text-slate-200">Base Sepolia</span>
           </div>
 
+          <Link
+            href="/profile"
+            onClick={() => setOpen(false)}
+            className="mt-3 flex w-full items-center justify-center gap-2 rounded-md border border-[#76501d] bg-[#23170a] px-4 py-2 text-sm font-medium text-slate-200 transition hover:bg-[#30200c]"
+          >
+            <UserRound className="h-4 w-4" /> View profile
+          </Link>
+
           <a
             href={FAUCET}
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-3 flex w-full items-center justify-center gap-2 rounded-md border border-[#76501d] bg-[#23170a] px-4 py-2 text-sm font-medium text-slate-200 transition hover:bg-[#30200c]"
+            className="mt-2 flex w-full items-center justify-center gap-2 rounded-md border border-[#76501d] bg-[#23170a] px-4 py-2 text-sm font-medium text-slate-200 transition hover:bg-[#30200c]"
           >
             <Droplets className="h-4 w-4" /> Get test ETH
           </a>

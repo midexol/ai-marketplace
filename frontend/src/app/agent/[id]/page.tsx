@@ -33,6 +33,7 @@ export default function AgentDetailPage({ params }: PageProps) {
   const [tradeType, setTradeType] = useState<'buy' | 'sell'>('buy');
   const [selectedChain, setSelectedChain] = useState('base');
   const [spotPrice, setSpotPrice] = useState<string | null>(null);
+  const [tokenBalance, setTokenBalance] = useState('0');
 
   const userAddress = useAppStore((state) => state.userAddress);
   const { getEthersSigner } = useAuth();
@@ -61,14 +62,20 @@ export default function AgentDetailPage({ params }: PageProps) {
         setSpotPrice(null);
         return;
       }
-      const { getSpotPriceEth } = await import('@/lib/bondingCurve');
-      const p = await getSpotPriceEth(onchainToken);
-      if (!cancelled) setSpotPrice(p);
+      const { getSpotPriceEth, getTokenBalance } = await import('@/lib/bondingCurve');
+      const [p, bal] = await Promise.all([
+        getSpotPriceEth(onchainToken),
+        userAddress ? getTokenBalance(onchainToken, userAddress) : Promise.resolve('0'),
+      ]);
+      if (!cancelled) {
+        setSpotPrice(p);
+        setTokenBalance(bal);
+      }
     })();
     return () => {
       cancelled = true;
     };
-  }, [onchainToken]);
+  }, [onchainToken, userAddress]);
 
   const mockChartData = [
     { timestamp: Date.now() - 7 * 86400000, price: 0.38 },
@@ -115,7 +122,6 @@ export default function AgentDetailPage({ params }: PageProps) {
     );
   }
 
-  const price = priceData?.price || '0';
   const change24h = priceData?.change24h || '0';
   const isUp = parseFloat(change24h) >= 0;
   const tradeHistory = trades?.data || [];
@@ -303,8 +309,8 @@ export default function AgentDetailPage({ params }: PageProps) {
                 </h2>
                 <TradeForm
                   agentName={agent.name}
-                  currentPrice={price}
-                  userBalance="10.5"
+                  currentPrice={(spotPrice || '0').replace(/,/g, '')}
+                  userBalance={tokenBalance}
                   onSubmit={handleTradeSubmit}
                   tradeType={tradeType}
                   onCancel={() => setShowTradeForm(false)}

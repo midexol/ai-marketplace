@@ -151,16 +151,31 @@ class ApiClient {
     return data;
   }
 
-  // User profile — used to detect returning (already-onboarded) users.
+  // User profile — used to detect returning users + render the profile page.
   async getUserProfile(
     address: string
-  ): Promise<{ address: string; metadata?: Record<string, any> } | null> {
+  ): Promise<{
+    address: string;
+    username?: string;
+    bio?: string;
+    profileImage?: string;
+    metadata?: Record<string, any>;
+  } | null> {
     try {
       const { data } = await this.client.get(`/portfolio/user/${address}`);
       return data;
     } catch {
       return null;
     }
+  }
+
+  // Update editable profile fields (username, bio, optional image URL).
+  async updateUserProfile(
+    address: string,
+    fields: { username?: string; bio?: string; profileImage?: string }
+  ): Promise<{ success: boolean }> {
+    const { data } = await this.client.patch(`/portfolio/user/${address}`, fields);
+    return data;
   }
 
   // User preferences

@@ -82,6 +82,31 @@ export class ContractService {
     return !!this.factory;
   }
 
+  /** A read-only provider (works even when minting/operator is disabled). */
+  private readProvider(): ethers.JsonRpcProvider {
+    return this.provider ?? new ethers.JsonRpcProvider(env.BASE_SEPOLIA_RPC);
+  }
+
+  /**
+   * Read an address's real ERC-20 balance for an AgentToken, returned as a
+   * whole-token decimal string. This is the on-chain source of truth — used to
+   * keep holder counts honest (can't be faked by a forged API call).
+   */
+  async getTokenBalance(tokenAddress: string, userAddress: string): Promise<string> {
+    try {
+      const erc20 = new ethers.Contract(
+        tokenAddress,
+        ['function balanceOf(address) view returns (uint256)'],
+        this.readProvider()
+      );
+      const balWei: bigint = await erc20.balanceOf(userAddress);
+      return ethers.formatEther(balWei);
+    } catch (err) {
+      logger.warn(`getTokenBalance failed for ${tokenAddress}/${userAddress}: ${(err as Error)?.message}`);
+      return '0';
+    }
+  }
+
   /** Derive a 3–6 char ticker from an agent name. */
   private symbolFor(name: string): string {
     const cleaned = name.replace(/[^a-zA-Z]/g, '').toUpperCase();

@@ -2,8 +2,12 @@ import { Repository } from 'typeorm';
 import { AppDataSource } from '@/database/data-source';
 import { Portfolio } from '@/models/Portfolio';
 import { User } from '@/models/User';
+import { Agent } from '@/models/Agent';
 import { logger } from '@/utils/logger';
 import { AppError } from '@/middleware/errorHandler';
+import { ContractService } from '@/services/ContractService';
+
+const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 
 interface PortfolioHolding {
   agentId: string;
@@ -20,10 +24,74 @@ interface PortfolioHolding {
 export class PortfolioService {
   private portfolioRepository: Repository<Portfolio>;
   private userRepository: Repository<User>;
+  private agentRepository: Repository<Agent>;
+  private contractService: ContractService;
 
   constructor() {
     this.portfolioRepository = AppDataSource.getRepository(Portfolio);
     this.userRepository = AppDataSource.getRepository(User);
+    this.agentRepository = AppDataSource.getRepository(Agent);
+    this.contractService = new ContractService();
+  }
+
+  /**
+   * Reconcile a user's holding for an agent against the chain, then refresh the
+   * agent's holder count. We read the real on-chain ERC-20 balance (not a value
+   * supplied by the caller), so the holder count reflects actual ownership and
+   * can't be inflated by forged requests. Call this after a buy/sell settles.
+   */
+  async syncHolding(userAddress: string, agentId: string) {
+    const agent = await this.agentRepository.findOne({ where: { id: agentId } });
+    if (!agent) {
+      throw new AppError('Agent not found', 404, 'AGENT_NOT_FOUND');
+    }
+
+    const tokenAddress = (agent.tokenAddresses as Record<string, string> | undefined)?.base;
+    if (!tokenAddress || tokenAddress === ZERO_ADDRESS) {
+      // No on-chain token yet — nothing to reconcile.
+      return { balance: '0', holders: agent.totalHolders ?? 0 };
+    }
+
+    // On-chain truth.
+    const balance = await this.contractService.getTokenBalance(tokenAddress, userAddress);
+
+    // Upsert the holding's balance only (preserve averageBuyPrice if present).
+    let portfolio = await this.portfolioRepository.findOne({
+      where: { userAddress, agentId, chain: 'base' },
+    });
+    if (portfolio) {
+      portfolio.balance = balance;
+    } else {
+      await this.getOrCreateUser(userAddress);
+      portfolio = this.portfolioRepository.create({
+        userAddress,
+        agentId,
+        chain: 'base',
+        balance,
+        averageBuyPrice: '0',
+        currentPrice: '0',
+        currentValue: '0',
+      });
+    }
+    await this.portfolioRepository.save(portfolio);
+
+    // Recompute the live holder count = distinct addresses with a positive balance.
+    const holders = await this.countHolders(agentId);
+    agent.totalHolders = holders;
+    await this.agentRepository.save(agent);
+
+    logger.info(`Holding synced: ${userAddress} agent=${agentId} balance=${balance} holders=${holders}`);
+    return { balance, holders };
+  }
+
+  /** Count distinct addresses currently holding a positive balance of an agent. */
+  private async countHolders(agentId: string): Promise<number> {
+    const rows = await this.portfolioRepository.find({ where: { agentId } });
+    const holders = new Set<string>();
+    for (const r of rows) {
+      if (parseFloat(r.balance) > 0) holders.add(r.userAddress.toLowerCase());
+    }
+    return holders.size;
   }
 
   async getOrCreateUser(address: string): Promise<User> {
@@ -226,15 +294,10 @@ export class PortfolioService {
 
   async getUserProfile(address: string) {
     try {
-      const user = await this.userRepository.findOne({
-        where: { address },
-      });
-
-      if (!user) {
-        throw new AppError('User not found', 404, 'USER_NOT_FOUND');
-      }
-
-      return user;
+      // First-time wallets have no row yet — return (and persist) a blank
+      // profile instead of 404, so the profile page renders cleanly on first
+      // visit. The user then fills it in via update.
+      return await this.getOrCreateUser(address);
     } catch (error) {
       if (error instanceof AppError) throw error;
       logger.error('Failed to fetch user profile:', error);

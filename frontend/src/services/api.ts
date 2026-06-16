@@ -191,6 +191,16 @@ class ApiClient {
   }
 
   // Portfolio
+  /**
+   * Reconcile a holding against the chain after a trade and refresh the agent's
+   * live holder count. Best-effort: the trade already settled on-chain, so a
+   * failure here only delays the holder-count update.
+   */
+  async syncHolding(userAddress: string, agentId: string): Promise<{ balance: string; holders: number }> {
+    const { data } = await this.client.post(`/portfolio/${userAddress}/sync`, { agentId });
+    return data;
+  }
+
   async getPortfolio(userAddress: string): Promise<Portfolio[]> {
     const { data } = await this.client.get(`/portfolio/${userAddress}`);
     const holdings = Array.isArray(data)

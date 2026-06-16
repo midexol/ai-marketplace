@@ -85,6 +85,31 @@ router.get('/:userAddress/value', async (req: Request, res: Response) => {
   }
 });
 
+// POST /api/portfolio/:userAddress/sync - Reconcile a holding against the chain
+// after a trade settles, and refresh the agent's live holder count. Balance is
+// read on-chain (not trusted from the body), so no auth is needed: a forged
+// call can only refresh the caller's real balance, it can't inflate counts.
+router.post('/:userAddress/sync', async (req: Request, res: Response) => {
+  try {
+    const { userAddress } = req.params;
+    const agentId = (req.body?.agentId ?? '').toString();
+
+    if (!userAddress.match(/^0x[a-fA-F0-9]{40}$/)) {
+      throw new AppError('Invalid wallet address format', 400, 'INVALID_ADDRESS');
+    }
+    if (!agentId) {
+      throw new AppError('agentId is required', 400, 'VALIDATION_ERROR');
+    }
+
+    const result = await portfolioService.syncHolding(userAddress, agentId);
+    res.json(result);
+  } catch (error) {
+    if (error instanceof AppError) throw error;
+    logger.error('Failed to sync holding:', error);
+    throw new AppError('Failed to sync holding', 500, 'HOLDING_SYNC_ERROR');
+  }
+});
+
 // POST /api/portfolio/:userAddress/holdings - Add holding
 router.post('/:userAddress/holdings', authorizeUser('userAddress'), async (req: Request, res: Response) => {
   try {

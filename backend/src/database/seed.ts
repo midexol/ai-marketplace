@@ -17,7 +17,7 @@ const MOCK_AGENTS: Partial<Agent>[] = [
     type: 'writing',
     chains: ['base'],
     tokenAddresses: {},
-    totalHolders: 1284,
+    totalHolders: 0,
     marketCap: '5000000000000000000000',
   },
   {
@@ -27,7 +27,7 @@ const MOCK_AGENTS: Partial<Agent>[] = [
     type: 'research',
     chains: ['base'],
     tokenAddresses: {},
-    totalHolders: 2041,
+    totalHolders: 0,
     marketCap: '3000000000000000000000',
   },
   {
@@ -37,7 +37,7 @@ const MOCK_AGENTS: Partial<Agent>[] = [
     type: 'governance',
     chains: ['base'],
     tokenAddresses: {},
-    totalHolders: 768,
+    totalHolders: 0,
     marketCap: '8000000000000000000000',
   },
   {
@@ -47,7 +47,7 @@ const MOCK_AGENTS: Partial<Agent>[] = [
     type: 'butler',
     chains: ['base'],
     tokenAddresses: {},
-    totalHolders: 3320,
+    totalHolders: 0,
     marketCap: '2000000000000000000000',
   },
   {
@@ -57,7 +57,7 @@ const MOCK_AGENTS: Partial<Agent>[] = [
     type: 'research',
     chains: ['base'],
     tokenAddresses: {},
-    totalHolders: 1567,
+    totalHolders: 0,
     marketCap: '4500000000000000000000',
   },
   {
@@ -67,7 +67,7 @@ const MOCK_AGENTS: Partial<Agent>[] = [
     type: 'writing',
     chains: ['base'],
     tokenAddresses: {},
-    totalHolders: 982,
+    totalHolders: 0,
     marketCap: '2700000000000000000000',
   },
 ];
@@ -201,3 +201,4 @@ if (require.main === module) {
       process.exit(1);
     });
 }
+

@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { apiClient } from '@/services/api';
 import { useAgent } from '@/hooks/useAgent';
 import { useTrades, useMarketPrice } from '@/hooks/useMarketplace';
 import { usePortfolio } from '@/hooks/usePortfolio';
@@ -22,7 +24,7 @@ import {
   shortenAddress,
 } from '@/utils/formatters';
 import { Trade } from '@/types';
-import { AlertCircle, TrendingUp, TrendingDown, Wallet, Bot, Sparkles, BadgeCheck } from 'lucide-react';
+import { AlertCircle, TrendingUp, TrendingDown, Wallet, Bot, Sparkles, BadgeCheck, Users } from 'lucide-react';
 
 interface PageProps {
   params: { id: string };
@@ -34,7 +36,10 @@ export default function AgentDetailPage({ params }: PageProps) {
   const [selectedChain, setSelectedChain] = useState('base');
   const [spotPrice, setSpotPrice] = useState<string | null>(null);
   const [tokenBalance, setTokenBalance] = useState('0');
+  // Bumped after a trade settles to re-read the on-chain balance.
+  const [refreshTick, setRefreshTick] = useState(0);
 
+  const queryClient = useQueryClient();
   const userAddress = useAppStore((state) => state.userAddress);
   const { getEthersSigner } = useAuth();
   const { data: agent, isLoading: agentLoading, error: agentError } = useAgent(params.id);
@@ -75,7 +80,7 @@ export default function AgentDetailPage({ params }: PageProps) {
     return () => {
       cancelled = true;
     };
-  }, [onchainToken, userAddress]);
+  }, [onchainToken, userAddress, refreshTick]);
 
   const mockChartData = [
     { timestamp: Date.now() - 7 * 86400000, price: 0.38 },
@@ -107,6 +112,20 @@ export default function AgentDetailPage({ params }: PageProps) {
       await sellTokens({ signer, token: tokenAddress, amountTokens });
     }
     setShowTradeForm(false);
+
+    // Reconcile the holding against the chain so the holder count stays real.
+    // Best-effort — the trade already settled, so don't surface failures here.
+    if (userAddress) {
+      try {
+        await apiClient.syncHolding(userAddress, params.id);
+        queryClient.invalidateQueries({ queryKey: ['agent', params.id] });
+        queryClient.invalidateQueries({ queryKey: ['agents'] });
+        queryClient.invalidateQueries({ queryKey: ['portfolio', userAddress] });
+      } catch {
+        /* non-blocking */
+      }
+    }
+    setRefreshTick((t) => t + 1);
   };
 
   if (agentLoading) return <Spinner />;
@@ -171,6 +190,10 @@ export default function AgentDetailPage({ params }: PageProps) {
               <p className="mt-2 max-w-2xl text-slate-400">{agent.description}</p>
               <div className="mt-4 flex flex-wrap items-center gap-3">
                 <span className="chip capitalize text-cyan-300">{agent.type || 'writing'}</span>
+                <span className="inline-flex items-center gap-1.5 text-sm text-slate-500">
+                  <Users className="h-4 w-4" />
+                  {formatNumber((agent as { totalHolders?: number }).totalHolders ?? 0)} holders
+                </span>
                 <span className="text-sm text-slate-500">by {shortenAddress(agent.creatorAddress)}</span>
                 <span className="text-sm text-slate-500">{formatDate(agent.createdAt)}</span>
               </div>

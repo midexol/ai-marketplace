@@ -8,9 +8,7 @@ export default {
   project: {
     link: 'https://github.com/16navigabraham/ai-marketplace',
   },
-  chat: {
-    link: 'https://discord.gg',
-  },
+
   docsRepositoryBase: 'https://github.com/16navigabraham/ai-marketplace/tree/main/docs',
   footer: {
     text: 'Synapse Protocol © 2026. Built for MetaMask Smart Accounts Dev Cook-Off.',

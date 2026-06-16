@@ -29,7 +29,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         </span>
       }
       projectLink="https://github.com/16navigabraham/ai-marketplace"
-      chatLink="https://discord.gg"
     />
   )
   const footer = (
